@@ -99,3 +99,24 @@ docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d -
 Cada contenedor tiene su propia documentación detallada en la carpeta [`documentacion/`](./documentacion/).
 
 ✅ **Proyecto listo para desarrollo y producción! 🚀**
+
+
+permisos correctos en PowerShell (Windows en español)
+
+Ejecuta esto en PowerShell como Administrador dentro de la carpeta del proyecto:
+```bash
+# 📂 Crear directorios si no existen
+$folders = @("data\config", "data\odoo", "data\filestore", "data\postgres", "data\redis", "addons")
+foreach ($folder in $folders) {
+    if (!(Test-Path $folder)) {
+        New-Item -ItemType Directory -Path $folder -Force
+    }
+}
+
+# 🛠️ Otorgar permisos de escritura a TODOS los usuarios en español
+$folders | ForEach-Object {
+    icacls $_ /grant "Todos":F /T /C /Q
+}
+
+Write-Host "✅ Permisos asignados correctamente."
+```
