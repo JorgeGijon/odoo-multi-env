@@ -1,5 +1,3 @@
-version: "3.8"
-
 # 🌐 Red compartida entre los servicios de Odoo
 networks:
   odoo-network:
