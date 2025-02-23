@@ -1,0 +1,22 @@
+FROM odoo:18
+
+USER root
+
+# Instalar dependencias necesarias
+RUN apt-get update && apt-get install -y     gettext-base curl git vim nano     libpq-dev python3-venv python3-dev     && rm -rf /var/lib/apt/lists/*
+
+# Crear entorno virtual de Python y actualizar `pip`
+RUN python3 -m venv /opt/venv
+RUN /opt/venv/bin/pip install --upgrade pip && /opt/venv/bin/pip install debugpy
+
+# Configurar PATH
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copiar el entrypoint y dar permisos
+COPY entrypoint_odoo.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+USER odoo
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["odoo"]

@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile.odoo
+    env_file:
+      - .env
+    volumes:
+      - ./entrypoint_odoo.sh:/entrypoint.sh:ro
+      - ./config/odoo.conf.tpl:/config/odoo.conf.tpl:ro
+      - ./addons:/mnt/custom-addons
+      - ./odoo-src:/usr/lib/python3/dist-packages/odoo
+      - ./data:/var/lib/odoo
+    entrypoint: ["/entrypoint.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+    container_name: ${INSTANCE:-prueba}-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo_password
+      - POSTGRES_DB=odoo
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "odoo"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: ${INSTANCE:-prueba}-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+
+  pgbackup:
+    build:
+      context: .
+      dockerfile: Dockerfile.pgbackup
+    volumes:
+      - ./backups:/backups
+    environment:
+      - PGHOST=prueba-postgres
+      - PGUSER=odoo
+      - PGPASSWORD=odoo_password
+      - PGDATABASE=odoo
+      - BACKUP_INTERVAL=86400
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  odoo-network:
+    external: true

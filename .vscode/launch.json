@@ -1,0 +1,20 @@
+    {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Adjuntar a Debugpy",
+                "type": "debugpy",
+                "request": "attach",
+                "connect": {
+                    "host": "localhost", // fijado
+                    "port": 5681         // dinámico
+                },
+                "pathMappings": [
+                    {
+                        "localRoot": "${workspaceFolder}/custom",
+                        "remoteRoot": "/mnt/custom-addons"
+                    }
+                ]
+            }
+        ]
+    }
