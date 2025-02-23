@@ -1,22 +1,42 @@
+version: "3.8"
+
 #-----------------------------------------------------------------------------
-#Ejecutar en Desarrollo:
-#docker-compose -f docker-compose.yml -f docker-compose.override.stage.yml up -d
+# 🚀 Ejecutar en Stage (Ubuntu):
+# docker-compose -f docker-compose.yml -f docker-compose.override.stage.yml up -d
 #-----------------------------------------------------------------------------
+
 services:
+  # 🏗️ Odoo en modo Stage
   odoo:
     env_file:
-      - .env.stage  # 🔹 Carga las variables específicas de Staging
+      - .env.stage
+    container_name: ${INSTANCE:-stage}-odoo
     ports:
-      - "8070:8069"  # 🔹 Odoo usará otro puerto para evitar conflictos con desarrollo
+      - "8070:8069"  # 📌 Puerto HTTP de Odoo para Stage
+    environment:
+      - ODOO_ENV=staging  # 🏗️ Define el entorno como Stage
+    networks:
+      - odoo-network
 
+  # 🐘 PostgreSQL en Stage
   postgres:
     env_file:
-      - .env.stage  # 🔹 Configuración específica para Staging
-    ports:
-      - "5434:5432"  # 🐘 Expone PostgreSQL en otro puerto
+      - .env.stage
+    container_name: ${INSTANCE:-stage}-postgres
 
+  # 🔴 Redis en Stage
   redis:
     env_file:
-      - .env.stage  # 🔹 Configuración específica de Redis para Staging
+      - .env.stage
+    container_name: ${INSTANCE:-stage}-redis
+
+  # 🌍 Nginx en Stage
+  nginx:
+    container_name: ${INSTANCE:-stage}-nginx
+    restart: always
+    profiles:
+      - "stage"
+    volumes:
+      - ./config/nginx-stage.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "6381:6379"  # 🔴 Redis en otro puerto
+      - "80:80"  # 📌 Maneja tráfico HTTP para Stage
