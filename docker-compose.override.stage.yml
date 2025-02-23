@@ -1,0 +1,22 @@
+#-----------------------------------------------------------------------------
+#Ejecutar en Desarrollo:
+#docker-compose -f docker-compose.yml -f docker-compose.override.stage.yml up -d
+#-----------------------------------------------------------------------------
+services:
+  odoo:
+    env_file:
+      - .env.stage  # 🔹 Carga las variables específicas de Staging
+    ports:
+      - "8070:8069"  # 🔹 Odoo usará otro puerto para evitar conflictos con desarrollo
+
+  postgres:
+    env_file:
+      - .env.stage  # 🔹 Configuración específica para Staging
+    ports:
+      - "5434:5432"  # 🐘 Expone PostgreSQL en otro puerto
+
+  redis:
+    env_file:
+      - .env.stage  # 🔹 Configuración específica de Redis para Staging
+    ports:
+      - "6381:6379"  # 🔴 Redis en otro puerto

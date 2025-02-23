@@ -1,0 +1,38 @@
+#-----------------------------------------------------------------------------
+#Ejecutar en Desarrollo:
+#docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d
+#-----------------------------------------------------------------------------
+services:
+  odoo:
+    env_file:
+      - .env.prod  # 🔹 Carga las variables de Producción
+    ports:
+      - "8069:8069"  # 🔹 Puerto estándar de Odoo en Producción
+    restart: always  # 🔄 Se reiniciará automáticamente si falla
+
+  nginx:
+    image: nginx:latest  # 🌐 Proxy inverso para manejar peticiones HTTP/S
+    container_name: ${INSTANCE:-prueba}-nginx
+    restart: unless-stopped  # 🔄 Reinicio automático si hay fallo
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro  # 🔹 Configuración de Nginx
+      - ./nginx/ssl:/etc/nginx/ssl  # 🔐 Certificados SSL
+    ports:
+      - "80:80"  # 🌍 Puerto HTTP
+      - "443:443"  # 🔒 Puerto HTTPS
+    depends_on:
+      - odoo  # 🚀 Espera a que Odoo esté listo antes de iniciar Nginx
+    networks:
+      - odoo-network
+
+  postgres:
+    env_file:
+      - .env.prod  # 🔹 Configuración de BD en Producción
+    ports:
+      - "5432:5432"  # 🐘 Mantiene el puerto estándar
+
+  redis:
+    env_file:
+      - .env.prod  # 🔹 Configuración de Redis en Producción
+    ports:
+      - "6379:6379"  # 🔴 Mantiene el puerto estándar
