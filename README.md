@@ -20,6 +20,7 @@ E:\WEBS\ODOO\Proyectos\odoo-instances\odoo-multi-env│── .gitignore
 │── Dockerfile.pgbackup
 │── entrypoint_odoo.sh
 │── entrypoint_pgbackup.sh
+│── entrypoint_redis.sh
 │── addons/         # 🔹 Módulos personalizados
 │── odoo-src/       # 🔹 Código fuente de Odoo (montado como volumen)
 │── data/           # 💾 Almacena configuraciones y datos
