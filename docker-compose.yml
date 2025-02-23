@@ -11,7 +11,7 @@ services:
       - ./addons:/mnt/custom-addons                      # 🔌 Monta los módulos personalizados
       - ./odoo-src:/usr/lib/python3/dist-packages/odoo   # 🖥️ Acceso al código fuente de Odoo
       - ./data/odoo:/var/lib/odoo                             # 💾 Almacena datos persistentes de Odoo
-      
+      - ./data/filestore:/var/lib/odoo/filestore         # 📂 Almacenamiento de archivos adjuntos
     entrypoint: ["/entrypoint.sh"]  # 🏁 Ejecuta el script de entrada
     depends_on:
       postgres:
