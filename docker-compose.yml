@@ -102,4 +102,5 @@ services:
       - odoo-network  # 🌍 Conexión a la red de Odoo
     ports:
       - "80:80"  # 📌 Redirige tráfico HTTP a Odoo
+      
 
