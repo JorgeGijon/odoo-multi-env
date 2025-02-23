@@ -10,21 +10,6 @@ services:
       - "8069:8069"  # 🔹 Puerto estándar de Odoo en Producción
     restart: always  # 🔄 Se reiniciará automáticamente si falla
 
-  nginx:
-    image: nginx:latest  # 🌐 Proxy inverso para manejar peticiones HTTP/S
-    container_name: ${INSTANCE:-prueba}-nginx
-    restart: unless-stopped  # 🔄 Reinicio automático si hay fallo
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro  # 🔹 Configuración de Nginx
-      - ./nginx/ssl:/etc/nginx/ssl  # 🔐 Certificados SSL
-    ports:
-      - "80:80"  # 🌍 Puerto HTTP
-      - "443:443"  # 🔒 Puerto HTTPS
-    depends_on:
-      - odoo  # 🚀 Espera a que Odoo esté listo antes de iniciar Nginx
-    networks:
-      - odoo-network
-
   postgres:
     env_file:
       - .env.prod  # 🔹 Configuración de BD en Producción
