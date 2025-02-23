@@ -1,46 +1,79 @@
-# DebugPy - Depuración Remota para Odoo
+# 🐍 **Guía Completa de DebugPy en Odoo Multi-Entorno**
 
-## 📌 Función
-DebugPy permite depurar Odoo de forma remota utilizando **VS Code** o **PyCharm**, lo que facilita el análisis y solución de errores en el código.
+## 🚀 **Introducción**
+DebugPy es un depurador para Python que permite conectar un entorno de desarrollo a Odoo para depuración remota. En este proyecto, DebugPy está habilitado en el entorno **Desarrollo (Dev)** para facilitar la detección de errores y optimización del código sin afectar los entornos de **Staging** y **Producción**.
 
-## 🛠 Configuración en `docker-compose.override.dev.yml`
-DebugPy solo está habilitado en el entorno de desarrollo (`dev`). Se configura con el siguiente servicio dentro de `docker-compose.override.dev.yml`:
+El depurador se ejecuta dentro del contenedor de Odoo y permite conectar herramientas como **Visual Studio Code (VSCode)** o **PyCharm** para depuración interactiva.
+
+---
+
+## 🔄 **Flujo de Trabajo de DebugPy**
+
+1. **Arranque del contenedor de Odoo en modo DebugPy:**
+   - En el entorno **Desarrollo**, Odoo inicia con `debugpy` escuchando en el puerto `5678`.
+   - El contenedor se ejecuta en modo **espera**, lo que significa que Odoo no inicia hasta que un depurador se conecta.
+
+2. **Conectar un depurador externo:**
+   - Desde **VSCode o PyCharm**, se inicia una sesión de depuración remota apuntando al puerto `5678`.
+   - Una vez conectado, Odoo se ejecuta y el depurador permite inspeccionar código en tiempo real.
+
+3. **Depuración y edición en vivo:**
+   - Se pueden establecer puntos de interrupción (breakpoints).
+   - Se inspeccionan variables y el flujo de ejecución del código.
+   - Se prueba código sin necesidad de reiniciar todo el entorno.
+
+4. **Finalización de la depuración:**
+   - Una vez corregidos los errores, Odoo puede ejecutarse normalmente sin DebugPy.
+
+---
+
+## ⚙️ **Lógica de Configuración de DebugPy**
+
+### 🔹 **Configuración en `docker-compose.override.dev.yml`**
+En el entorno de **Desarrollo**, DebugPy está habilitado en el contenedor de Odoo con la siguiente configuración:
 ```yaml
 services:
   odoo:
-    env_file:
-      - .env.dev
     ports:
       - "8069:8069"
-      - "5678:5678"  # 🔹 Puerto de DebugPy
+      - "5678:5678"  # DebugPy
     environment:
       - ODOO_ENV=development
       - DEBUGPY_PORT=5678
-    command: ["python3", "-m", "debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "/usr/bin/odoo"]
+    command:
+      - "python3"
+      - "-m"
+      - "debugpy"
+      - "--listen"
+      - "0.0.0.0:5678"
+      - "--wait-for-client"
+      - "/usr/bin/odoo"
 ```
 
-## 📌 Configuración en `.env.dev`
-El puerto de depuración se define en el archivo `.env.dev` para facilitar la configuración:
-```ini
-DEBUGPY_PORT=5678
+### 🔹 **Configuración en `entrypoint_odoo.sh`**
+El script de entrada de Odoo (`entrypoint_odoo.sh`) detecta si DebugPy está habilitado y ejecuta Odoo en modo depuración:
+```bash
+if [[ "$ODOO_ENV" == "development" ]]; then
+  echo "🐍 [DEBUGPY] Habilitando DebugPy en el puerto $DEBUGPY_PORT"
+  exec python3 -m debugpy --listen 0.0.0.0:$DEBUGPY_PORT --wait-for-client /usr/bin/odoo
+else
+  exec odoo
+fi
 ```
 
-## 🛠 Variables de Entorno
-| **Variable**  | **Descripción**               | **Valor por Defecto** |
-|--------------|-----------------------------|-----------------|
-| `DEBUGPY_PORT` | Puerto donde se ejecuta DebugPy | `5678` |
+---
 
-## 🚀 Cómo Usar DebugPy con **VS Code**
-Para depurar Odoo con VS Code:
+## 🔧 **Cómo Conectar un Depurador**
 
-### 1️⃣ **Agregar la configuración en `.vscode/launch.json`**
-En el directorio raíz del proyecto, crear o modificar `.vscode/launch.json` con el siguiente contenido:
+### 🔹 **Conectar desde Visual Studio Code (VSCode)**
+1. Instalar la extensión **Python** en VSCode.
+2. Agregar la siguiente configuración en `.vscode/launch.json`:
 ```json
 {
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach to DebugPy",
+            "name": "Adjuntar a DebugPy",
             "type": "python",
             "request": "attach",
             "connect": {
@@ -49,57 +82,69 @@ En el directorio raíz del proyecto, crear o modificar `.vscode/launch.json` con
             },
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}/odoo-src",
-                    "remoteRoot": "/usr/lib/python3/dist-packages/odoo"
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/usr/bin/odoo"
                 }
             ]
         }
     ]
 }
 ```
+3. Ejecutar VSCode y seleccionar `Run > Start Debugging` (F5).
+4. Una vez conectado, Odoo arrancará y se podrá depurar en tiempo real.
 
-### 2️⃣ **Ejecutar Odoo en modo depuración**
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
-```
-
-### 3️⃣ **Iniciar la depuración en VS Code**
-- Abrir **VS Code**.
-- Ir a la pestaña **Ejecutar y Depurar** (`Ctrl + Shift + D`).
-- Seleccionar la configuración **"Attach to DebugPy"**.
-- Iniciar la depuración (`F5`).
-
-Ahora se pueden establecer **puntos de interrupción** en el código y analizar su ejecución en tiempo real.
-
-## 🚀 Cómo Usar DebugPy con **PyCharm**
-Para depurar Odoo con PyCharm:
-
-### 1️⃣ **Configurar un nuevo depurador remoto**
-- Ir a `Run -> Edit Configurations`.
-- Hacer clic en `+` y seleccionar `Python Remote Debug`.
-- Configurar:
-  - **Host**: `localhost`
-  - **Port**: `5678`
-  - **Path Mapping**:
-    - `Local Path`: `{ruta_local}/odoo-src`
-    - `Remote Path`: `/usr/lib/python3/dist-packages/odoo`
-- Guardar y ejecutar la configuración.
-
-### 2️⃣ **Ejecutar Odoo en modo depuración**
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
-```
-
-### 3️⃣ **Iniciar la depuración en PyCharm**
-- Hacer clic en `Debug`.
-- Agregar puntos de interrupción y analizar la ejecución del código.
-
-## 🔥 **Beneficios de Usar DebugPy**
-✔ Permite depurar Odoo sin necesidad de modificar la imagen del contenedor.  
-✔ Se integra con VS Code y PyCharm sin configuración adicional.  
-✔ Facilita la detección de errores en desarrollo.  
+### 🔹 **Conectar desde PyCharm**
+1. Ir a `Run > Edit Configurations`.
+2. Crear una nueva configuración de **Python Remote Debug**.
+3. Configurar el **host** como `localhost` y el **puerto** como `5678`.
+4. Iniciar la sesión de depuración y esperar a que Odoo se conecte.
 
 ---
 
-## 📌 Conclusión
-DebugPy es una herramienta clave para depurar código en entornos de desarrollo de Odoo sin necesidad de reiniciar o reconstruir los contenedores.
+## ✅ **Ventajas del Uso de DebugPy**
+
+✔️ **Depuración en tiempo real** sin necesidad de reiniciar Odoo.
+✔️ **Compatible con VSCode y PyCharm**.
+✔️ **Modo de espera hasta que se conecte un depurador** → Odoo solo arranca cuando el depurador está activo.
+✔️ **Permite inspeccionar variables y ejecución del código paso a paso**.
+✔️ **Mejora la productividad y reduce el tiempo de desarrollo.**
+
+---
+
+## ❌ **Limitaciones y Consideraciones**
+
+⚠️ **No debe activarse en Producción** → DebugPy introduce latencia y riesgos de seguridad.
+⚠️ **Odoo no arrancará hasta que un depurador se conecte** → En desarrollo es útil, pero puede confundir si no se configura bien.
+⚠️ **Requiere redirección de puertos** → Asegurar que el puerto `5678` esté expuesto en `docker-compose.override.dev.yml`.
+
+---
+
+## 🔄 **Mantenimiento y Desactivación de DebugPy**
+
+🔹 **Reiniciar Odoo sin DebugPy:**
+```sh
+docker-compose restart odoo
+```
+
+🔹 **Deshabilitar DebugPy y ejecutar Odoo normalmente:**
+```yaml
+# Eliminar DebugPy del comando en docker-compose.override.dev.yml
+command: ["odoo"]
+```
+
+🔹 **Eliminar DebugPy y reiniciar contenedores:**
+```sh
+docker-compose down -v && ./deploy.sh
+```
+
+---
+
+## 🚀 **Conclusión**
+DebugPy es una herramienta esencial para depurar Odoo en entornos de desarrollo, permitiendo un flujo de trabajo eficiente con VSCode y PyCharm.
+
+Se recomienda su uso exclusivo en **Desarrollo**, asegurando que esté deshabilitado en entornos de **Staging y Producción**.
+
+---
+
+📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
+
