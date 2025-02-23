@@ -1,20 +1,32 @@
-# 🏗️ Usa una imagen de Debian estable
-FROM debian:latest
+# 📌 Dockerfile para servicio de backup de PostgreSQL basado en PostgreSQL 16
+# Este archivo configura un contenedor optimizado para gestionar backups automáticos de la base de datos.
 
-# 🛠️ Configurar entorno sin prompts interactivos
+# 🏗️ Usa la imagen oficial de PostgreSQL 16 para backups
+FROM postgres:16
+
+# 🛠️ Ejecutar como root para configurar entorno
+USER root
+
+# 🔄 Configurar entorno sin prompts interactivos
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 🔹 Instalar PostgreSQL Client para realizar backups
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-client curl cron \
-    && rm -rf /var/lib/apt/lists/*
+# 📂 Crear directorio para backups y ajustar permisos adecuados
+RUN mkdir -p /backups && chmod -R 777 /backups && chown -R postgres:postgres /backups
 
-# 🔧 Copiar el script de entrada y asignar permisos
-COPY entrypoint_pgbackup.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# 🔹 Definir variables de entorno para control de backups
+ARG BACKUP_INTERVAL=86400  # ⏳ Intervalo de backups en segundos (1 día por defecto)
+ENV BACKUP_INTERVAL=${BACKUP_INTERVAL}
 
-# 📂 Crear directorio para almacenar backups
-RUN mkdir -p /backups && chmod -R 777 /backups
+# 🔧 Copiar el script de backup y asignar permisos de ejecución
+COPY entrypoint_pgbackup.sh /entrypoint_pgbackup.sh
+RUN chmod +x /entrypoint_pgbackup.sh
 
-# 🏁 Definir el entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+# 🔎 HEALTHCHECK para verificar que se generan backups correctamente
+HEALTHCHECK --interval=1h --timeout=30s --retries=3 \
+    CMD test -f /backups/latest_backup.sql || exit 1
+
+# 👤 Cambiar al usuario 'postgres' para la ejecución segura del contenedor
+USER postgres
+
+# 🏁 Definir el entrypoint del contenedor para ejecución automática de backups
+ENTRYPOINT ["/entrypoint_pgbackup.sh"]
