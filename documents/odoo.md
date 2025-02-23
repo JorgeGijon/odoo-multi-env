@@ -119,5 +119,5 @@ Se recomienda probar en Staging antes de pasar cambios a Producción y mantener 
 
 ---
 
-📌 **Autor:** J 🚀 | Contribuciones bienvenidas mediante PRs.
+📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
 
