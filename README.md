@@ -158,3 +158,6 @@ $folders | ForEach-Object {
 }
 Write-Host "✅ Permisos asignados correctamente."
 ```
+---
+
+📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
