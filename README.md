@@ -56,8 +56,9 @@ Además, permite la integración con **Git** para gestionar versiones y desplieg
 | **Nginx (Opcional)** | Proxy inverso con HTTPS | Staging, Prod | [Guía](./documents/nginx.md) |
 
 ---
+---
 
-## 🚀 **Despliegue del Proyecto**
+## 🚀 **Despliegue AUTOMÁTICO con GIT y deploy **
 
 ### 🔹 **1. Clonar el repositorio**
 ```sh
@@ -80,6 +81,58 @@ Este script detectará automáticamente el entorno y lanzará el `docker-compose
 - **Staging:** `http://stage.miempresa.com`
 - **Producción:** `https://prod.miempresa.com`
 
+---
+
+## 📦 **Despliegue MANUAL con Docker Compose**
+
+Si prefieres ejecutar los contenedores sin `deploy.sh`, puedes hacerlo manualmente:
+
+### 🔹 **Desplegar en Desarrollo**
+```sh
+docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml --env-file .env.dev up -d --remove-orphans
+```
+
+### 🔹 **Desplegar en Staging**
+```sh
+docker-compose -f docker-compose.yml -f docker-compose.override.stage.yml --env-file .env.stage up -d --remove-orphans
+```
+
+### 🔹 **Desplegar en Producción**
+```sh
+docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml --env-file .env.prod up -d --remove-orphans
+```
+
+---
+
+## 🔧 **Comandos Útiles para Mantenimiento**
+
+### 🔹 **Ver logs en tiempo real**
+```sh
+docker-compose logs -f odoo
+```
+
+### 🔹 **Reiniciar un servicio específico**
+```sh
+docker-compose restart odoo
+```
+
+### 🔹 **Detener todos los contenedores**
+```sh
+docker-compose down
+```
+
+### 🔹 **Eliminar todos los contenedores, volúmenes y redes asociadas**
+```sh
+docker-compose down -v
+```
+
+### 🔹 **Actualizar el código y reiniciar Odoo**
+```sh
+git pull
+./deploy.sh
+```
+
+---
 ---
 
 ## 🔒 **Configuración de Permisos en Archivos y Directorios**
@@ -105,4 +158,3 @@ $folders | ForEach-Object {
 }
 Write-Host "✅ Permisos asignados correctamente."
 ```
-
