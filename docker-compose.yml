@@ -37,13 +37,13 @@ services:
     container_name: ${INSTANCE:-prueba}-postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=odoo               # 👤 Usuario de PostgreSQL
-      - POSTGRES_PASSWORD=odoo_password  # 🔑 Contraseña de PostgreSQL
-      - POSTGRES_DB=odoo                 # 📂 Base de datos de Odoo
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}               # 👤 Usuario de PostgreSQL
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo_password}  # 🔑 Contraseña de PostgreSQL
+      - POSTGRES_DB=${POSTGRES_DB:-odoo}                 # 📂 Base de datos de Odoo
     volumes:
       - ./data/postgres:/var/lib/postgresql/data  # 💾 Datos persistentes de PostgreSQL
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "odoo"]  # 🩺 Verifica si PostgreSQL está listo
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-odoo}"]  # 🩺 Verifica si PostgreSQL está listo
       interval: 10s                              # ⏳ Verificación cada 10 segundos
       retries: 5                                 # 🔄 Reintentos en caso de fallo
     networks:
@@ -74,10 +74,10 @@ services:
     entrypoint: ["/entrypoint_pgbackup.sh"]  # 🚀 Script de inicio de backups
     environment:
       - PGHOST=${INSTANCE:-prueba}-postgres      # 📌 Servidor de PostgreSQL
-      - PGUSER=odoo                 # 👤 Usuario de PostgreSQL
-      - PGPASSWORD=odoo_password    # 🔑 Contraseña de PostgreSQL
-      - PGDATABASE=odoo             # 📂 Base de datos de Odoo
-      - BACKUP_INTERVAL=86400       # ⏳ Intervalo entre backups (1 día)
+      - PGUSER=${POSTGRES_USER:-odoo}            # 👤 Usuario de PostgreSQL
+      - PGPASSWORD=${POSTGRES_PASSWORD:-odoo_password}    # 🔑 Contraseña de PostgreSQL
+      - PGDATABASE=${POSTGRES_DB:-odoo}         # 📂 Base de datos de Odoo
+      - BACKUP_INTERVAL=${BACKUP_INTERVAL:-86400}       # ⏳ Intervalo entre backups (1 día)
     depends_on:
       postgres:
         condition: service_healthy  # ✅ Espera a que PostgreSQL esté listo
@@ -102,4 +102,3 @@ services:
       - odoo-network  # 🌍 Conexión a la red de Odoo
     ports:
       - "80:80"  # 📌 Redirige tráfico HTTP a Odoo
-
