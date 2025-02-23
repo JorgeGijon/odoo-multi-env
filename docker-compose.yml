@@ -21,48 +21,48 @@ services:
       - odoo-network  # 🌍 Conexión a la red de Odoo
 
   postgres:
-    image: postgres:16  # 🐘 Usa la imagen oficial de PostgreSQL 16
+    image: postgres:16                            # 🐘 Usa la imagen oficial de PostgreSQL 16
     container_name: ${INSTANCE:-prueba}-postgres  # 🏷️ Nombre del contenedor con prefijo de instancia
-    restart: unless-stopped  # 🔄 Reiniciar a menos que se detenga manualmente
+    restart: unless-stopped                       # 🔄 Reiniciar a menos que se detenga manualmente
     environment:
-      - POSTGRES_USER=odoo  # 👤 Usuario de PostgreSQL
+      - POSTGRES_USER=odoo               # 👤 Usuario de PostgreSQL
       - POSTGRES_PASSWORD=odoo_password  # 🔑 Contraseña de PostgreSQL
-      - POSTGRES_DB=odoo  # 📂 Base de datos de Odoo
+      - POSTGRES_DB=odoo                 # 📂 Base de datos de Odoo
     volumes:
       - ./data/postgres:/var/lib/postgresql/data  # 💾 Datos persistentes de PostgreSQL
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "odoo"]  # 🩺 Verifica si PostgreSQL está listo
-      interval: 10s  # ⏳ Verificación cada 10 segundos
-      retries: 5  # 🔄 Reintentos en caso de fallo
+      interval: 10s                              # ⏳ Verificación cada 10 segundos
+      retries: 5                                 # 🔄 Reintentos en caso de fallo
     networks:
       - odoo-network  # 🌍 Conexión a la red de Odoo
 
   redis:
-    image: redis:latest  # 🚀 Usa la imagen oficial de Redis
+    image: redis:latest                        # 🚀 Usa la imagen oficial de Redis
     container_name: ${INSTANCE:-prueba}-redis  # 🏷️ Nombre del contenedor con prefijo de instancia
-    restart: unless-stopped  # 🔄 Reiniciar automáticamente si falla
-    command: redis-server --appendonly yes  # 🛠️ Configura Redis para persistencia
+    restart: unless-stopped                    # 🔄 Reiniciar automáticamente si falla
+    command: redis-server --appendonly yes     # 🛠️ Configura Redis para persistencia
     volumes:
-      - ./data/redis:/data  # 💾 Datos persistentes de Redis
+      - ./data/redis:/data                # 💾 Datos persistentes de Redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]  # 🩺 Verifica si Redis está activo
-      interval: 10s  # ⏳ Verificación cada 10 segundos
-      retries: 5  # 🔄 Reintentos en caso de fallo
+      interval: 10s                       # ⏳ Verificación cada 10 segundos
+      retries: 5                          # 🔄 Reintentos en caso de fallo
     networks:
       - odoo-network  # 🌍 Conexión a la red de Odoo
 
   pgbackup:
     build:
-      context: .  # 📂 Usa la carpeta raíz como contexto de construcción
+      context: .                       # 📂 Usa la carpeta raíz como contexto de construcción
       dockerfile: Dockerfile.pgbackup  # 🛠️ Dockerfile para el servicio de copias de seguridad
     volumes:
-      - ./backups:/backups  # 💾 Almacena los backups en la carpeta local
+      - ./backups:/backups             # 💾 Almacena los backups en la carpeta local
     environment:
-      - PGHOST=prueba-postgres  # 📌 Servidor de PostgreSQL
-      - PGUSER=odoo  # 👤 Usuario de PostgreSQL
-      - PGPASSWORD=odoo_password  # 🔑 Contraseña de PostgreSQL
-      - PGDATABASE=odoo  # 📂 Base de datos de Odoo
-      - BACKUP_INTERVAL=86400  # ⏳ Intervalo entre backups (1 día)
+      - PGHOST=prueba-postgres      # 📌 Servidor de PostgreSQL
+      - PGUSER=odoo                 # 👤 Usuario de PostgreSQL
+      - PGPASSWORD=odoo_password    # 🔑 Contraseña de PostgreSQL
+      - PGDATABASE=odoo             # 📂 Base de datos de Odoo
+      - BACKUP_INTERVAL=86400       # ⏳ Intervalo entre backups (1 día)
     depends_on:
       postgres:
         condition: service_healthy  # ✅ Espera a que PostgreSQL esté listo
