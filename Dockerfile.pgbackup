@@ -1,0 +1,20 @@
+# 🏗️ Usa una imagen de Debian estable
+FROM debian:latest
+
+# 🛠️ Configurar entorno sin prompts interactivos
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 🔹 Instalar PostgreSQL Client para realizar backups
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client curl cron \
+    && rm -rf /var/lib/apt/lists/*
+
+# 🔧 Copiar el script de entrada y asignar permisos
+COPY entrypoint_pgbackup.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# 📂 Crear directorio para almacenar backups
+RUN mkdir -p /backups && chmod -R 777 /backups
+
+# 🏁 Definir el entrypoint
+ENTRYPOINT ["/entrypoint.sh"]

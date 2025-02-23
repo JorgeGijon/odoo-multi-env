@@ -1,22 +1,41 @@
+# 🏗️ Usa la imagen oficial de Odoo 18 basada en Ubuntu 24.04
 FROM odoo:18
 
+# 🛠️ Ejecutar como root para instalar dependencias
 USER root
 
-# Instalar dependencias necesarias
-RUN apt-get update && apt-get install -y     gettext-base curl git vim nano     libpq-dev python3-venv python3-dev     && rm -rf /var/lib/apt/lists/*
+# 🔄 Configurar entorno sin prompts interactivos
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Crear entorno virtual de Python y actualizar `pip`
+# 🔹 Instalar paquetes necesarios
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gettext-base curl git vim nano \
+    libpq-dev python3-venv python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 🐍 Crear entorno virtual de Python y actualizar `pip`
 RUN python3 -m venv /opt/venv
 RUN /opt/venv/bin/pip install --upgrade pip && /opt/venv/bin/pip install debugpy
 
-# Configurar PATH
+# 🏗️ Configurar PATH para que use el entorno virtual
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copiar el entrypoint y dar permisos
+# 🔌 Copiar módulos personalizados
+COPY --chown=odoo:odoo /custom_addons /mnt/custom-addons
+
+# 🔧 Copiar el script de entrada y asignar permisos de ejecución
 COPY entrypoint_odoo.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# 📂 Ajustar permisos de directorios críticos
+RUN mkdir -p /var/lib/odoo/filestore && chmod -R 777 /var/lib/odoo/filestore
+RUN mkdir -p /backups && chmod -R 777 /backups && chown -R odoo:odoo /backups
+
+# 👤 Cambiar al usuario 'odoo' para la ejecución
 USER odoo
 
+# 🏁 Definir el entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
+
+# 🚀 Comando por defecto para ejecutar Odoo
 CMD ["odoo"]
