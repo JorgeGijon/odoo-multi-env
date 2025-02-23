@@ -50,12 +50,12 @@ E:\WEBS\ODOO\Proyectos\odoo-instances\odoo-multi-env│── .gitignore
 
 | **Contenedor**  | **Función** | **Uso en Entorno** | **Documentación** |
 |----------------|------------|--------------------|----------------|
-| **Odoo** | Plataforma ERP principal | Dev, Staging, Prod | [Guía](./documentacion/odoo.md) |
-| **PostgreSQL** | Base de datos | Dev, Staging, Prod | [Guía](./documentacion/postgres.md) |
-| **Redis** | Caché y sesiones | Dev, Staging, Prod | [Guía](./documentacion/redis.md) |
-| **PGBackup** | Copias automáticas de PostgreSQL | Dev, Staging, Prod | [Guía](./documentacion/pgbackup.md) |
-| **DebugPy** | Depuración remota | Dev | [Guía](./documentacion/debugpy.md) |
-| **Nginx (Opcional)** | Proxy inverso con HTTPS | Staging, Prod | [Guía](./documentacion/nginx.md) |
+| **Odoo** | Plataforma ERP principal | Dev, Staging, Prod | [Guía](./documents/odoo.md) |
+| **PostgreSQL** | Base de datos | Dev, Staging, Prod | [Guía](./documents/postgres.md) |
+| **Redis** | Caché y sesiones | Dev, Staging, Prod | [Guía](./documents/redis.md) |
+| **PGBackup** | Copias automáticas de PostgreSQL | Dev, Staging, Prod | [Guía](./documents/pgbackup.md) |
+| **DebugPy** | Depuración remota | Dev | [Guía](./documents/debugpy.md) |
+| **Nginx (Opcional)** | Proxy inverso con HTTPS | Staging, Prod | [Guía](./documents/nginx.md) |
 
 ---
 
