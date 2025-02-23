@@ -1,10 +1,13 @@
-# Odoo Multi-Entorno con DebugPy, Redis y PGBackup
+# 🚀 Odoo Multi-Env - Despliegue Flexible con Docker
 
-Este proyecto gestiona **Odoo en entornos Desarrollo, Staging y Producción** con Docker y Git.
+## 📌 **Descripción del Proyecto**
+Este repositorio proporciona un entorno altamente flexible y seguro para desplegar Odoo en múltiples entornos (**Desarrollo**, **Staging** y **Producción**) utilizando **Docker** y **Docker Compose**. Incluye una configuración optimizada con **PostgreSQL**, **Redis** para caché/sesiones y un sistema automatizado de **backups**.
+
+Además, permite la integración con **Git** para gestionar versiones y despliegues desde un repositorio remoto.
 
 ---
 
-## 📌 **Estructura del Proyecto**
+## 📂 **Estructura del Proyecto**
 
 ```
 /odoo-multi-env
@@ -37,53 +40,11 @@ Este proyecto gestiona **Odoo en entornos Desarrollo, Staging y Producción** co
 │   ├── pgbackup.md                 # 🔹 Guía de copias de seguridad
 │   ├── debugpy.md                  # 🔹 Guía de DebugPy para depuración en Dev
 │   ├── nginx.md                    # 🔹 Guía de Nginx (proxy inverso)
-
 ```
 
 ---
 
-##  🚀 Lógica del Proyecto
-
-    📌 deploy.sh detecta la IP y elige qué entorno ejecutar:
-        Si la IP es local (192.168.x.x) → Levanta Dev en Windows
-        Si la IP es pública/fija → Levanta Stage y Prod en el servidor Ubuntu
-
-    📌 docker-compose.override.dev.yml (Windows - Dev)
-        Levanta Odoo Dev, PostgreSQL y Redis
-        No usa Nginx (Odoo se accede directamente en localhost:8069)
-        Usa volúmenes locales para desarrollo
-
-    📌 docker-compose.override.prod.yml (Ubuntu - Stage y Prod)
-        Levanta Odoo Stage y Odoo Prod en puertos distintos (8070 y 8090)
-        Nginx maneja el tráfico y redirige tráfico entre Stage y Prod
-        PostgreSQL y Redis son compartidos para eficiencia
-
-    📌 Configuración de Nginx (config/nginx.conf)
-        Redirige stage.miempresa.com → Odoo Stage (8070)
-        Redirige prod.miempresa.com → Odoo Prod (8090)
-
-    📌 .env por entorno (Configuración Separada)
-        .env.dev → Configuración de desarrollo (puerto 8069)
-        .env.stage → Configuración de Stage (puerto 8070)
-        .env.prod → Configuración de Producción (puerto 8090)
-
-## 🚀 Cómo se despliega el entorno adecuado
-
-📌 Ejecutar deploy.sh para detectar el entorno:
-
-bash deploy.sh
-
-✅ Si la IP es local, se ejecutará:
-
-docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
-
-✅ Si la IP es fija, se ejecutará:
-
-docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d  
-
----
-
-## 📂 **Contenedores Incluidos**
+## 📦 **Contenedores Incluidos**
 
 | **Contenedor**  | **Función** | **Uso en Entorno** | **Documentación** |
 |----------------|------------|--------------------|----------------|
@@ -96,51 +57,42 @@ docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d
 
 ---
 
-## 🛠 **Comandos Rápidos**
+## 🚀 **Despliegue del Proyecto**
 
-### **1️⃣ Inicializar el Proyecto**
-```bash
+### 🔹 **1. Clonar el repositorio**
+```sh
 git clone https://github.com/tu-usuario/odoo-multi-env.git
 cd odoo-multi-env
 ```
 
-### **2️⃣ Ejecutar en Diferentes Entornos**
+### 🔹 **2. Configurar variables de entorno**
+Edita los archivos `.env.dev`, `.env.stage` o `.env.prod` según el entorno en el que vayas a desplegar.
 
-🔹 **Desarrollo**  
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
+### 🔹 **3. Ejecutar el despliegue automático**
+```sh
+chmod +x deploy.sh
+./deploy.sh
 ```
+Este script detectará automáticamente el entorno y lanzará el `docker-compose` correcto.
 
-🔹 **Staging**  
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.override.stage.yml up -d
-```
-
-🔹 **Producción**  
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d
-```
-
-### **3️⃣ Desplegar Producción con Git**
-```bash
-git pull origin main
-docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d --build
-```
+### 🔹 **4. Acceder a Odoo**
+- **Desarrollo:** `http://localhost:8069`
+- **Staging:** `http://stage.miempresa.com`
+- **Producción:** `https://prod.miempresa.com`
 
 ---
 
-## 📚 **Documentación**
+## 🔒 **Configuración de Permisos en Archivos y Directorios**
 
-Cada contenedor tiene su propia documentación detallada en la carpeta [`documentacion/`](./documentacion/).
+### 🔹 **En Ubuntu (Linux)**
+```sh
+mkdir -p data/config data/odoo data/filestore data/postgres data/redis addons
+sudo chown -R 1000:1000 data addons
+sudo chmod -R 777 data addons
+```
 
-✅ **Proyecto listo para desarrollo y producción! 🚀**
-
-
-permisos correctos en PowerShell (Windows en español)
-
-Ejecuta esto en PowerShell como Administrador dentro de la carpeta del proyecto:
-```bash
-# 📂 Crear directorios si no existen
+### 🔹 **En Windows (PowerShell)**
+```powershell
 $folders = @("data\config", "data\odoo", "data\filestore", "data\postgres", "data\redis", "addons")
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -148,10 +100,9 @@ foreach ($folder in $folders) {
     }
 }
 
-# 🛠️ Otorgar permisos de escritura a TODOS los usuarios en español
 $folders | ForEach-Object {
     icacls $_ /grant "Todos":F /T /C /Q
 }
-
 Write-Host "✅ Permisos asignados correctamente."
 ```
+
