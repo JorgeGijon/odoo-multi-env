@@ -1,17 +1,20 @@
+# 📌 Dockerfile para Odoo personalizado basado en Odoo 18 con Ubuntu 24.04
+# Este archivo construye una imagen optimizada de Odoo con soporte para DebugPy y módulos personalizados.
+
 # 🏗️ Usa la imagen oficial de Odoo 18 basada en Ubuntu 24.04
 FROM odoo:18
 
-# 🛠️ Ejecutar como root para instalar dependencias
+# 🛠️ Ejecutar como root para instalar dependencias del sistema
 USER root
 
 # 🔄 Configurar entorno sin prompts interactivos
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 🔹 Instalar paquetes necesarios
+# 🔹 Instalar paquetes esenciales para Odoo y DebugPy
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gettext-base curl git vim nano \
-    libpq-dev python3-venv python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+    gettext-base curl git vim nano \  
+   libpq-dev python3-venv python3-dev \  
+   && rm -rf /var/lib/apt/lists/*  
 
 # 🐍 Crear entorno virtual de Python y actualizar `pip`
 RUN python3 -m venv /opt/venv
@@ -20,21 +23,29 @@ RUN /opt/venv/bin/pip install --upgrade pip && /opt/venv/bin/pip install debugpy
 # 🏗️ Configurar PATH para que use el entorno virtual
 ENV PATH="/opt/venv/bin:$PATH"
 
-# 🔌 Copiar módulos personalizados
+# 🔌 Copiar módulos personalizados a la carpeta de addons de Odoo
 COPY --chown=odoo:odoo /custom_addons /mnt/custom-addons
+
+# 🔧 Copiar configuración de Odoo y asignar permisos adecuados
+COPY ./config/odoo.conf /etc/odoo/odoo.conf
+RUN chown -R odoo:odoo /etc/odoo/odoo.conf
+
+# 📂 Ajustar permisos de directorios críticos para evitar problemas de acceso
+RUN mkdir -p /var/lib/odoo/filestore && chmod -R 777 /var/lib/odoo/filestore
+RUN mkdir -p /backups && chmod -R 777 /backups && chown -R odoo:odoo /backups
+
+# 🔎 HEALTHCHECK para verificar que Odoo está operativo
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 \
+    CMD curl -f http://localhost:8069 || exit 1
 
 # 🔧 Copiar el script de entrada y asignar permisos de ejecución
 COPY entrypoint_odoo.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# 📂 Ajustar permisos de directorios críticos
-RUN mkdir -p /var/lib/odoo/filestore && chmod -R 777 /var/lib/odoo/filestore
-RUN mkdir -p /backups && chmod -R 777 /backups && chown -R odoo:odoo /backups
-
-# 👤 Cambiar al usuario 'odoo' para la ejecución
+# 👤 Cambiar al usuario 'odoo' para la ejecución segura del contenedor
 USER odoo
 
-# 🏁 Definir el entrypoint
+# 🏁 Definir el entrypoint del contenedor
 ENTRYPOINT ["/entrypoint.sh"]
 
 # 🚀 Comando por defecto para ejecutar Odoo
