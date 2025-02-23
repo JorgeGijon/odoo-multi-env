@@ -42,12 +42,44 @@ Este proyecto gestiona **Odoo en entornos Desarrollo, Staging y Producción** co
 
 ---
 
-## 🚀 **Características**
-✔ **DebugPy en Desarrollo**  
-✔ **Redis para Caché y Sesiones**  
-✔ **PGBackup para copias de seguridad automáticas**  
-✔ **Compatibilidad con múltiples proyectos compartiendo contenedores**  
-✔ **Documentación completa en [documentacion/](./documentacion/)**  
+##  🚀 Lógica del Proyecto
+
+    📌 deploy.sh detecta la IP y elige qué entorno ejecutar:
+        Si la IP es local (192.168.x.x) → Levanta Dev en Windows
+        Si la IP es pública/fija → Levanta Stage y Prod en el servidor Ubuntu
+
+    📌 docker-compose.override.dev.yml (Windows - Dev)
+        Levanta Odoo Dev, PostgreSQL y Redis
+        No usa Nginx (Odoo se accede directamente en localhost:8069)
+        Usa volúmenes locales para desarrollo
+
+    📌 docker-compose.override.prod.yml (Ubuntu - Stage y Prod)
+        Levanta Odoo Stage y Odoo Prod en puertos distintos (8070 y 8090)
+        Nginx maneja el tráfico y redirige tráfico entre Stage y Prod
+        PostgreSQL y Redis son compartidos para eficiencia
+
+    📌 Configuración de Nginx (config/nginx.conf)
+        Redirige stage.miempresa.com → Odoo Stage (8070)
+        Redirige prod.miempresa.com → Odoo Prod (8090)
+
+    📌 .env por entorno (Configuración Separada)
+        .env.dev → Configuración de desarrollo (puerto 8069)
+        .env.stage → Configuración de Stage (puerto 8070)
+        .env.prod → Configuración de Producción (puerto 8090)
+
+## 🚀 Cómo se despliega el entorno adecuado
+
+📌 Ejecutar deploy.sh para detectar el entorno:
+
+bash deploy.sh
+
+✅ Si la IP es local, se ejecutará:
+
+docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
+
+✅ Si la IP es fija, se ejecutará:
+
+docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d  
 
 ---
 
