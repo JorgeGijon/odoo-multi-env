@@ -18,25 +18,25 @@ Este proyecto gestiona **Odoo en entornos Desarrollo, Staging y Producción** co
 │   ├── filestore/                # 🔹 Archivos adjuntos de Odoo
 │   ├── postgres/                 # 🔹 Datos de PostgreSQL (compartido en Stage y Prod)
 │   ├── redis/                    # 🔹 Datos de Redis
-│── addons/                        # 📂 Módulos personalizados de Odoo
-│── deploy.sh                      # 🚀 Script que detecta la IP y ejecuta el entorno correcto
-│── docker-compose.yml              # 📦 Configuración base de Docker (común para todos los entornos)
+│── addons/                       # 📂 Módulos personalizados de Odoo
+│── deploy.sh                     # 🚀 Script que detecta la IP y ejecuta el entorno correcto
+│── docker-compose.yml               # 📦 Configuración base de Docker (común para todos los entornos)
 │── docker-compose.override.dev.yml  # ⚙️ Configuración extra para Desarrollo (Windows)
 │── docker-compose.override.prod.yml # ⚙️ Configuración extra para Stage y Producción (Ubuntu)
-│── entrypoint_odoo.sh              # 🚀 Script de inicio para Odoo
-│── entrypoint_pgbackup.sh          # 🛢️ Script de backups automáticos de PostgreSQL
-│── entrypoint_redis.sh             # 🔴 Script de inicio de Redis
-│── .env.dev                        # ⚙️ Configuración del entorno Desarrollo
-│── .env.stage                      # ⚙️ Configuración del entorno Stage
-│── .env.prod                       # ⚙️ Configuración del entorno Producción
-│── README.md                       # 📜 Documentación del proyecto
-│── documents/                      # 📂 Guías de uso de cada servicio
-│   ├── odoo.md                      # 🔹 Guía de Odoo
-│   ├── postgres.md                   # 🔹 Guía de PostgreSQL
-│   ├── redis.md                      # 🔹 Guía de Redis
-│   ├── pgbackup.md                   # 🔹 Guía de copias de seguridad
-│   ├── debugpy.md                    # 🔹 Guía de DebugPy para depuración en Dev
-│   ├── nginx.md                      # 🔹 Guía de Nginx (proxy inverso)
+│── entrypoint_odoo.sh            # 🚀 Script de inicio para Odoo
+│── entrypoint_pgbackup.sh        # 🛢️ Script de backups automáticos de PostgreSQL
+│── entrypoint_redis.sh           # 🔴 Script de inicio de Redis
+│── .env.dev                      # ⚙️ Configuración del entorno Desarrollo
+│── .env.stage                    # ⚙️ Configuración del entorno Stage
+│── .env.prod                     # ⚙️ Configuración del entorno Producción
+│── README.md                     # 📜 Documentación del proyecto
+│── documents/                    # 📂 Guías de uso de cada servicio
+│   ├── odoo.md                     # 🔹 Guía de Odoo
+│   ├── postgres.md                 # 🔹 Guía de PostgreSQL
+│   ├── redis.md                    # 🔹 Guía de Redis
+│   ├── pgbackup.md                 # 🔹 Guía de copias de seguridad
+│   ├── debugpy.md                  # 🔹 Guía de DebugPy para depuración en Dev
+│   ├── nginx.md                    # 🔹 Guía de Nginx (proxy inverso)
 
 ```
 
