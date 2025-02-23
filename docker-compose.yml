@@ -1,66 +1,74 @@
 services:
   odoo:
     build:
-      context: .
-      dockerfile: Dockerfile.odoo
+      context: .                   # 📂 Usa la carpeta raíz como contexto de construcción
+      dockerfile: Dockerfile.odoo  # 🛠️ Especifica el Dockerfile para Odoo
     env_file:
-      - .env
+      - .env                       # 🔹 Carga las variables generales desde el archivo `.env`
     volumes:
-      - ./entrypoint_odoo.sh:/entrypoint.sh:ro
-      - ./config/odoo.conf.tpl:/config/odoo.conf.tpl:ro
-      - ./addons:/mnt/custom-addons
-      - ./odoo-src:/usr/lib/python3/dist-packages/odoo
-      - ./data:/var/lib/odoo
-    entrypoint: ["/entrypoint.sh"]
+      - ./entrypoint_odoo.sh:/entrypoint.sh:ro           # 🚀 Script de inicio para Odoo
+      - ./config/odoo.conf.tpl:/config/odoo.conf.tpl:ro  # 📜 Configuración dinámica de Odoo
+      - ./addons:/mnt/custom-addons                      # 🔌 Monta los módulos personalizados
+      - ./odoo-src:/usr/lib/python3/dist-packages/odoo   # 🖥️ Acceso al código fuente de Odoo
+      - ./data:/var/lib/odoo                             # 💾 Almacena datos persistentes de Odoo
+    entrypoint: ["/entrypoint.sh"]  # 🏁 Ejecuta el script de entrada
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_healthy  # ✅ Espera a que PostgreSQL esté listo
       redis:
-        condition: service_healthy
+        condition: service_healthy  # ✅ Espera a que Redis esté listo
+    networks:
+      - odoo-network  # 🌍 Conexión a la red de Odoo
 
   postgres:
-    image: postgres:16
-    container_name: ${INSTANCE:-prueba}-postgres
-    restart: unless-stopped
+    image: postgres:16  # 🐘 Usa la imagen oficial de PostgreSQL 16
+    container_name: ${INSTANCE:-prueba}-postgres  # 🏷️ Nombre del contenedor con prefijo de instancia
+    restart: unless-stopped  # 🔄 Reiniciar a menos que se detenga manualmente
     environment:
-      - POSTGRES_USER=odoo
-      - POSTGRES_PASSWORD=odoo_password
-      - POSTGRES_DB=odoo
+      - POSTGRES_USER=odoo  # 👤 Usuario de PostgreSQL
+      - POSTGRES_PASSWORD=odoo_password  # 🔑 Contraseña de PostgreSQL
+      - POSTGRES_DB=odoo  # 📂 Base de datos de Odoo
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data  # 💾 Datos persistentes de PostgreSQL
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "odoo"]
-      interval: 10s
-      retries: 5
+      test: ["CMD", "pg_isready", "-U", "odoo"]  # 🩺 Verifica si PostgreSQL está listo
+      interval: 10s  # ⏳ Verificación cada 10 segundos
+      retries: 5  # 🔄 Reintentos en caso de fallo
+    networks:
+      - odoo-network  # 🌍 Conexión a la red de Odoo
 
   redis:
-    image: redis:latest
-    container_name: ${INSTANCE:-prueba}-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
+    image: redis:latest  # 🚀 Usa la imagen oficial de Redis
+    container_name: ${INSTANCE:-prueba}-redis  # 🏷️ Nombre del contenedor con prefijo de instancia
+    restart: unless-stopped  # 🔄 Reiniciar automáticamente si falla
+    command: redis-server --appendonly yes  # 🛠️ Configura Redis para persistencia
     volumes:
-      - ./data/redis:/data
+      - ./data/redis:/data  # 💾 Datos persistentes de Redis
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      retries: 5
+      test: ["CMD", "redis-cli", "ping"]  # 🩺 Verifica si Redis está activo
+      interval: 10s  # ⏳ Verificación cada 10 segundos
+      retries: 5  # 🔄 Reintentos en caso de fallo
+    networks:
+      - odoo-network  # 🌍 Conexión a la red de Odoo
 
   pgbackup:
     build:
-      context: .
-      dockerfile: Dockerfile.pgbackup
+      context: .  # 📂 Usa la carpeta raíz como contexto de construcción
+      dockerfile: Dockerfile.pgbackup  # 🛠️ Dockerfile para el servicio de copias de seguridad
     volumes:
-      - ./backups:/backups
+      - ./backups:/backups  # 💾 Almacena los backups en la carpeta local
     environment:
-      - PGHOST=prueba-postgres
-      - PGUSER=odoo
-      - PGPASSWORD=odoo_password
-      - PGDATABASE=odoo
-      - BACKUP_INTERVAL=86400
+      - PGHOST=prueba-postgres  # 📌 Servidor de PostgreSQL
+      - PGUSER=odoo  # 👤 Usuario de PostgreSQL
+      - PGPASSWORD=odoo_password  # 🔑 Contraseña de PostgreSQL
+      - PGDATABASE=odoo  # 📂 Base de datos de Odoo
+      - BACKUP_INTERVAL=86400  # ⏳ Intervalo entre backups (1 día)
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_healthy  # ✅ Espera a que PostgreSQL esté listo
+    networks:
+      - odoo-network  # 🌍 Conexión a la red de Odoo
 
 networks:
   odoo-network:
-    external: true
+    external: true  # 🌐 Usa una red compartida para conectar múltiples proyectos
