@@ -2,16 +2,18 @@
 #Ejecutar en Desarrollo:
 #docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
 #-----------------------------------------------------------------------------
+# 🔹 Override para entorno de Desarrollo (Windows)
 services:
   odoo:
     env_file:
-      - .env.dev  # 🔹 Carga las variables específicas del entorno de desarrollo
+      - .env.dev  # 🔹 Variables específicas para Desarrollo
+    container_name: ${INSTANCE:-dev}-odoo
     ports:
-      - "8069:8069"  # 🔹 Puerto HTTP de Odoo
-      - "5678:5678"  # 🛠️ Puerto de DebugPy para depuración remota
+      - "8069:8069"  # 📌 Puerto HTTP de Odoo
+      - "5678:5678"  # 🛠️ DebugPy para depuración remota
     environment:
-      - ODOO_ENV=development  # 🏗️ Modo desarrollo activado
-      - DEBUGPY_PORT=5678     # 🔍 DebugPy se ejecutará en este puerto
+      - ODOO_ENV=development  # 🏗️ Activa modo Desarrollo
+      - DEBUGPY_PORT=5678      # 🔍 Puerto DebugPy
     command: 
       - "python3" 
       - "-m" 
@@ -19,17 +21,21 @@ services:
       - "--listen" 
       - "0.0.0.0:5678" 
       - "--wait-for-client" 
-      - "/usr/bin/odoo"     # 🐍 Odoo esperará a que un depurador se conecte antes de ejecutar
+      - "/usr/bin/odoo"
+    networks:
+      - odoo-network
 
   postgres:
     env_file:
-      - .env.dev  # 🔹 Carga configuración de BD específica para desarrollo
+      - .env.dev
+    container_name: ${INSTANCE:-dev}-postgres
     ports:
-      - "5433:5432"  # 🐘 Expone PostgreSQL en un puerto diferente al estándar
+      - "5433:5432"  # 🐘 Puerto alternativo para PostgreSQL
 
   redis:
     env_file:
-      - .env.dev  # 🔹 Configuración específica para Redis en desarrollo
+      - .env.dev
+    container_name: ${INSTANCE:-dev}-redis
     ports:
-      - "6380:6379"  # 🔴 Expone Redis en otro puerto para pruebas
+      - "6380:6379"  # 🔴 Puerto alternativo para Redis
 
