@@ -1,54 +1,52 @@
 #!/bin/bash
-set -e  # ⛔ Si hay un error en cualquier línea del script, el proceso se detiene inmediatamente.
 
-echo "🟢 [INFO] Iniciando `entrypoint_pgbackup.sh` para copias de seguridad de PostgreSQL..."
-echo "🟢 [INFO] Variables de entorno cargadas:"
-echo "    🔹 PGHOST: $PGHOST"
-echo "    🔹 PGDATABASE: $PGDATABASE"
-echo "    🔹 PGUSER: $PGUSER"
-echo "    🔹 PGBACKUP_DIR: $PGBACKUP_DIR"
-echo "    🔹 BACKUP_INTERVAL: ${BACKUP_INTERVAL:-86400} segundos (valor por defecto: 24 horas)"
-echo "    🔹 RETENTION_DAYS: ${RETENTION_DAYS:-7} días (valor por defecto: 7 días)"
+# 📌 Entrypoint para backup automático de PostgreSQL
+# Este script ejecuta copias de seguridad periódicas y maneja errores
 
-# 📂 **CREAR DIRECTORIO DE BACKUPS SI NO EXISTE**
-if [[ ! -d "$PGBACKUP_DIR" ]]; then
-  echo "⚠️ [WARN] Directorio de backups $PGBACKUP_DIR no encontrado. Creándolo..."
-  mkdir -p "$PGBACKUP_DIR"
-  echo "✅ [INFO] Directorio creado: $PGBACKUP_DIR"
-fi
+set -e  # ⛔ Si ocurre un error, el script se detiene inmediatamente.
+set -u  # 🔒 Tratar variables no definidas como error.
+set -o pipefail  # 🚀 Detectar fallos en comandos en tuberías (|).
 
-# 🔍 **VERIFICAR CONEXIÓN CON POSTGRESQL ANTES DE EMPEZAR**
+echo "🟢 [INFO] Iniciando servicio de backup de PostgreSQL..."
+
+# 🔹 Definir variables de entorno con valores predeterminados
+BACKUP_INTERVAL=${BACKUP_INTERVAL:-86400}  # ⏳ Intervalo entre backups en segundos (24h por defecto)
+BACKUP_DIR="/backups"
+PGHOST=${PGHOST:-postgres}  # 📌 Servidor de PostgreSQL
+PGUSER=${PGUSER:-odoo}  # 👤 Usuario de PostgreSQL
+PGDATABASE=${PGDATABASE:-odoo}  # 🗄️ Base de datos a respaldar
+
+# 📂 Asegurar que el directorio de backups existe
+mkdir -p "$BACKUP_DIR"
+chmod -R 777 "$BACKUP_DIR"
+echo "🔹 Directorio de backups: $BACKUP_DIR"
+
+# 🔍 **Verificar conexión con PostgreSQL antes de iniciar backups**
 echo "⏳ [INFO] Verificando disponibilidad de PostgreSQL en: $PGHOST..."
 until pg_isready -h "$PGHOST" -U "$PGUSER" > /dev/null 2>&1; do
   echo "🔄 [INFO] PostgreSQL aún no está listo, esperando 5 segundos..."
   sleep 5
 done
-echo "✅ [INFO] PostgreSQL está disponible. Comenzando ciclo de backups..."
+echo "✅ [INFO] PostgreSQL está disponible. Procediendo con backups..."
 
-# 🔁 **BUCLE INFINITO PARA EJECUTAR BACKUPS PERIÓDICAMENTE**
-while true; do
-  # 🕒 Obtener timestamp actual para el nombre del backup
-  TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-  BACKUP_FILE="$PGBACKUP_DIR/backup_${TIMESTAMP}.dump"
-
-  echo "🔄 [INFO] Iniciando backup de la base de datos: $PGDATABASE"
-  echo "    📂 Archivo destino: $BACKUP_FILE"
-
-  # 🛢️ **EJECUTAR BACKUP CON `pg_dump`**
-  if PGPASSWORD=$PGPASSWORD pg_dump -h "$PGHOST" -U "$PGUSER" -F c -b -v -f "$BACKUP_FILE" "$PGDATABASE"; then
-    echo "✅ [SUCCESS] Backup completado con éxito: $BACKUP_FILE"
+# 🔄 Función para realizar backup
+do_backup() {
+  TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+  BACKUP_FILE="$BACKUP_DIR/backup_$TIMESTAMP.sql"
+  echo "🔄 [INFO] Realizando backup en: $BACKUP_FILE"
+  if pg_dumpall -h "$PGHOST" -U "$PGUSER" > "$BACKUP_FILE"; then
+    ln -sf "$BACKUP_FILE" "$BACKUP_DIR/latest_backup.sql"
+    echo "✅ [INFO] Backup completado con éxito: $BACKUP_FILE"
   else
-    echo "❌ [ERROR] Fallo al generar el backup. Revisar la conexión con PostgreSQL."
+    echo "❌ [ERROR] Error al realizar el backup."
     exit 1
   fi
+}
 
-  # 🗑️ **LIMPIAR BACKUPS ANTIGUOS SEGÚN `RETENTION_DAYS`**
-  echo "🧹 [INFO] Eliminando backups más antiguos que $RETENTION_DAYS días..."
-  find "$PGBACKUP_DIR" -type f -name "backup_*.dump" -mtime +$RETENTION_DAYS -exec rm -f {} \;
-
-  echo "✅ [INFO] Limpieza de backups antiguos completada."
-
-  # ⏳ **ESPERAR `BACKUP_INTERVAL` SEGUNDOS ANTES DEL SIGUIENTE BACKUP**
-  echo "⏳ [INFO] Esperando $BACKUP_INTERVAL segundos antes del próximo backup..."
+# 🔁 Ejecutar backups en intervalos definidos
+echo "⏳ [INFO] Iniciando ciclo de backups automáticos cada $BACKUP_INTERVAL segundos..."
+while true; do
+  do_backup
+  echo "⏳ [INFO] Siguiente backup en $BACKUP_INTERVAL segundos..."
   sleep "$BACKUP_INTERVAL"
 done
