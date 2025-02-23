@@ -7,7 +7,7 @@ services:
       - .env                       # 🔹 Carga las variables generales desde el archivo `.env`
     volumes:
       - ./entrypoint_odoo.sh:/entrypoint.sh:ro           # 🚀 Script de inicio para Odoo
-      - ./config/odoo.conf.tpl:/config/odoo.conf.tpl:ro  # 📜 Configuración dinámica de Odoo
+      - ./data/config:/config                            # 📜 Se generarán dinámicamente desde entrypoint_odoo : `odoo_dev.conf`, `odoo_prod.conf`, etc.
       - ./addons:/mnt/custom-addons                      # 🔌 Monta los módulos personalizados
       - ./odoo-src:/usr/lib/python3/dist-packages/odoo   # 🖥️ Acceso al código fuente de Odoo
       - ./data:/var/lib/odoo                             # 💾 Almacena datos persistentes de Odoo
