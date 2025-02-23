@@ -1,5 +1,3 @@
-version: "3.8"
-
 #-----------------------------------------------------------------------------
 # 🚀 Ejecutar en Stage (Ubuntu):
 # docker-compose -f docker-compose.yml -f docker-compose.override.stage.yml up -d
