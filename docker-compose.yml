@@ -1,95 +1,77 @@
+# 📌 Archivo base `docker-compose.yml`
+# Contiene la configuración común para todos los entornos (desarrollo, staging, producción)
+
 # 🌐 Red compartida entre los servicios de Odoo
 networks:
   odoo-network:
-    external: true  # 🔗 Permite compartir la red con otros proyectos
+    name: odoo-network
+    driver: bridge
 
 services:
   # 🏗️ ODOO - Aplicación ERP
   odoo:
+    image: odoo-multi-env-odoo
     build:
-      context: .                   
-      dockerfile: Dockerfile.odoo  
-    #container_name: ${INSTANCE:-dev}-odoo  
+      context: .
+      dockerfile: Dockerfile.odoo  # 🛠️ Define la imagen base de Odoo
+    container_name: ${INSTANCE:-prueba}-odoo
     restart: unless-stopped
-    entrypoint: ["/entrypoint.sh"]
     depends_on:
       postgres:
-        condition: service_healthy  
+        condition: service_healthy  # ✅ Espera a que PostgreSQL esté listo
       redis:
-        condition: service_healthy  
+        condition: service_healthy  # ✅ Espera a que Redis esté listo
     volumes:
-      - ./entrypoint_odoo.sh:/entrypoint.sh:ro
-      - ./data/config:/config
-      - ./addons:/mnt/custom-addons
-      - ./odoo-src:/usr/lib/python3/dist-packages/odoo
-      - ./data/odoo:/var/lib/odoo
-      - ./data/filestore:/var/lib/odoo/filestore
+      - ./addons:/mnt/custom-addons                      # 🔌 Monta los módulos personalizados
+      - ./odoo-src:/usr/lib/python3/dist-packages/odoo   # 🖥️ Acceso al código fuente de Odoo
+      - ./data/odoo:/var/lib/odoo                        # 💾 Almacena datos persistentes de Odoo
     networks:
-      - odoo-network  
+      - odoo-network
 
   # 🐘 POSTGRESQL - Base de datos
   postgres:
     image: postgres:16
     container_name: ${INSTANCE:-prueba}-postgres
     restart: unless-stopped
-    environment:
-      - INSTANCE=${INSTANCE:-prueba}
-      - POSTGRES_USER=${POSTGRES_USER:-odoo}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo_password}
-      - POSTGRES_DB=${POSTGRES_DB:-odoo}
-      - PGDATA=/var/lib/postgresql/data
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data  
+      - ./data/postgres:/var/lib/postgresql/data  # 💾 Datos persistentes de PostgreSQL
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-odoo}"]
-      interval: 10s                              
-      retries: 5                                 
+      test: ["CMD", "pg_isready", "-U", "odoo"]
+      interval: 10s
+      retries: 5
     networks:
-      - odoo-network  
+      - odoo-network
 
   # 🔴 REDIS - Caché y almacenamiento de sesiones
   redis:
-    build:
-      context: .  
-      dockerfile: Dockerfile.redis  
+    image: redis:latest
     container_name: ${INSTANCE:-prueba}-redis
     restart: unless-stopped
-    environment:
-      - INSTANCE=${INSTANCE:-prueba}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
-      - REDIS_MAXMEMORY=${REDIS_MAXMEMORY:-256mb}
-      - REDIS_MAXMEMORY_POLICY=${REDIS_MAXMEMORY_POLICY:-noeviction}
+    command: redis-server --appendonly yes  # 🛠️ Configura Redis con persistencia
     volumes:
-      - ./data/redis:/data  
+      - ./data/redis:/data  # 💾 Datos persistentes de Redis
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]  
-      interval: 10s                       
-      retries: 5                          
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
     networks:
-      - odoo-network  
+      - odoo-network
 
   # 🛢️ PGBackup - Backups automáticos de PostgreSQL
   pgbackup:
+    image: odoo-multi-env-pgbackup
     build:
-      context: .  
-      dockerfile: Dockerfile.pgbackup  
+      context: .
+      dockerfile: Dockerfile.pgbackup  # 🛠️ Imagen personalizada para backups
     container_name: ${INSTANCE:-prueba}-pgbackup
     restart: unless-stopped
-    entrypoint: ["/entrypoint_pgbackup.sh"]  
-    environment:
-      - INSTANCE=${INSTANCE:-prueba}
-      - PGHOST=${INSTANCE:-prueba}-postgres      
-      - PGUSER=${POSTGRES_USER:-odoo}
-      - PGPASSWORD=${POSTGRES_PASSWORD:-odoo_password}
-      - PGDATABASE=${POSTGRES_DB:-odoo}
-      - BACKUP_INTERVAL=${BACKUP_INTERVAL:-86400}  
+    volumes:
+      - ./backups:/backups  # 💾 Carpeta local para backups
     depends_on:
       postgres:
-        condition: service_healthy  
-    volumes:
-      - ./backups:/backups  
+        condition: service_healthy  # ✅ Espera a que PostgreSQL esté listo
     networks:
-      - odoo-network  
+      - odoo-network
 
   # 🌍 NGINX - Proxy inverso para manejar tráfico de Stage y Prod
   nginx:
@@ -98,12 +80,12 @@ services:
     restart: always
     profiles:
       - "stage"
-      - "prod"  
+      - "prod"  # 🔥 Se activa solo en estos entornos
     volumes:
-      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro  
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro  # 📂 Configuración de Nginx
     depends_on:
       - odoo
     networks:
-      - odoo-network  
+      - odoo-network
     ports:
-      - "80:80"  
+      - "80:80"  # 📌 Redirige tráfico HTTP a Odoo
