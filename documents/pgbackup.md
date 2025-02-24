@@ -106,4 +106,3 @@ PGBackup es una solución automatizada y eficiente para garantizar la seguridad 
 ---
 
 📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
-
