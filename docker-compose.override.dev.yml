@@ -9,6 +9,7 @@ services:
       - "${ODOO_PORT:-8069}:8069"  # 📌 Odoo en localhost (Desarrollo)
       - "${DEBUGPY_PORT:-5678}:5678"  # 🛠️ DebugPy para depuración remota
     environment:
+      - INSTANCE=dev  # Para desarrollo
       - ODOO_ENV=development  # 🏗️ Define el entorno como Desarrollo
       - DEBUGPY_PORT=5678      # 🔍 Puerto para DebugPy
       - PGHOST=${PGHOST:-dev-postgres}  # 🐘 Conexión a PostgreSQL

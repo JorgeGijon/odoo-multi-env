@@ -8,6 +8,7 @@ services:
     ports:
       - "${ODOO_PORT:-8090}:8069"  # 📌 Odoo en puerto 8090 para Producción
     environment:
+      - INSTANCE=prod  # Para producción
       - ODOO_ENV=production  # 🏗️ Define el entorno como Producción
       - PGHOST=${PGHOST:-prod-postgres}  # 🐘 PostgreSQL en Producción
       - PGPORT=${PGPORT:-5432}  

@@ -8,6 +8,7 @@ services:
     ports:
       - "${ODOO_PORT:-8070}:8069"  # 📌 Odoo en puerto 8070 para Staging
     environment:
+      - INSTANCE=stage  # Para preprdoucción
       - ODOO_ENV=staging  # 🏗️ Define el entorno como Staging
       - PGHOST=${PGHOST:-stage-postgres}  # 🐘 PostgreSQL en Staging
       - PGPORT=${PGPORT:-5432}  
