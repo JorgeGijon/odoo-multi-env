@@ -4,15 +4,27 @@
 #-----------------------------------------------------------------------------
 
 services:
-  # 🏗️ Odoo en modo desarrollo
+  # 🏗️ Odoo - Aplicación ERP en Desarrollo, Stage y Producción
   odoo:
     container_name: ${INSTANCE:-prueba}-odoo
     ports:
       - "${ODOO_PORT:-8069}:8069"  # 📌 Puerto HTTP de Odoo
-      - "${DEBUGPY_PORT:-5678}:5678"  # 🛠️ DebugPy para depuración remota
     environment:
-      - ODOO_ENV=development  # 🏗️ Define el entorno como desarrollo
-      - DEBUGPY_PORT=5678      # 🔍 Puerto para DebugPy
+      - ODOO_ENV=${ODOO_ENV:-development}  # 🏗️ Define el entorno dinámicamente
+      - DEBUGPY_PORT=${DEBUGPY_PORT:-5678}  # 🔍 Puerto para DebugPy (Solo en desarrollo)
+      - PGHOST=${PGHOST:-prueba-postgres}  # 🐘 Conexión a PostgreSQL
+      - PGPORT=${PGPORT:-5432}  
+      - PGUSER=${PGUSER:-odoo}  
+      - PGPASSWORD=${PGPASSWORD:-odoo_password}  
+      - PGDATABASE=${PGDATABASE:-odoo_dev}  
+      - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-prueba-redis}  
+      - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6380}  
+    networks:
+      - odoo-network
+
+    # 🔹 **Activar DebugPy solo en Desarrollo**
+    profiles:
+      - "dev"
     command: 
       - "python3" 
       - "-m" 
@@ -20,9 +32,8 @@ services:
       - "--listen" 
       - "0.0.0.0:5678" 
       - "--wait-for-client" 
-      - "/usr/bin/odoo"  # 🏗️ Odoo espera la conexión del depurador antes de ejecutarse
-    networks:
-      - odoo-network
+      - "/usr/bin/odoo"  # 🏗️ Odoo esperará la conexión del depurador antes de ejecutarse
+
 
   # 🐘 PostgreSQL en desarrollo
   postgres:
