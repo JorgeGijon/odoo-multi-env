@@ -35,9 +35,22 @@ services:
     container_name: ${INSTANCE:-prueba}-postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-odoo}               # 👤 Usuario de PostgreSQL
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}                   # 👤 Usuario de PostgreSQL
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo_password}  # 🔑 Contraseña de PostgreSQL
-      - POSTGRES_DB=${POSTGRES_DB:-odoo}                 # 📂 Base de datos de Odoo
+      - POSTGRES_DB=${POSTGRES_DB:-odoo}                       # 📂 Base de datos de Odoo
+      # ⚙️ Configuración de optimización de PostgreSQL (Ajustada para 4 CPU / 4GB RAM)
+      - POSTGRES_SHARED_BUFFERS=1GB                    # 💾 Memoria compartida (25% de RAM disponible)
+      - POSTGRES_WORK_MEM=32MB                         # 💾 Memoria por operación (Mayor rendimiento en consultas grandes)
+      - POSTGRES_MAINTENANCE_WORK_MEM=128MB            # 🛠️ Memoria para mantenimiento (VACUUM, ANALYZE)
+      - POSTGRES_MAX_CONNECTIONS=60                    # 🔗 Máximo de conexiones simultáneas (Ajustado a carga media)
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=2GB              # 🛠️ Caché efectiva (~50% de la RAM restante)
+      - POSTGRES_DEFAULT_STATISTICS_TARGET=100         # 📊 Optimización de consultas
+      - POSTGRES_AUTOVACUUM_MAX_WORKERS=3              # 🛠️ Control de autovacuum (Balanceado)
+      - POSTGRES_AUTOVACUUM_VACUUM_SCALE_FACTOR=0.08   # 🔄 Frecuencia de VACUUM
+      - POSTGRES_AUTOVACUUM_ANALYZE_SCALE_FACTOR=0.04  # 🔄 Frecuencia de ANALYZE
+      - POSTGRES_AUTOVACUUM_FREEZE_MAX_AGE=150000000   # 🔄 Reducción del freeze_max_age para estabilidad
+      - POSTGRES_HOST_AUTH_METHOD=md5                  # 🔐 Habilitar autenticación segura
+      - POSTGRES_INITDB_ARGS=--data-checksums          # 🛠️ Habilitar checksums en la base de datos
     volumes:
       - ./data/postgres:/var/lib/postgresql/data  # 💾 Datos persistentes de PostgreSQL
     healthcheck:
