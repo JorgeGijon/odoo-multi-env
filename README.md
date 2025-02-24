@@ -135,12 +135,7 @@ git pull
 ---
 ---
 
-
----
-
----
-
-## 📦 **Extras**
+## 📦 **Documentación adicional**
 
 | **Contenedor**  | **Función** | **Documentación** |
 |----------------|------------|----------------|
@@ -149,8 +144,6 @@ git pull
 
 
 ---
-
-
 ---
 
 📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
