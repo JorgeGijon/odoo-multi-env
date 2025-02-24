@@ -5,27 +5,8 @@
 services:
   odoo:
     container_name: prod-odoo
-    ports:
-      - "${ODOO_PORT:-8090}:8069"  # 📌 Odoo en puerto 8090 para Producción
     environment:
-      - INSTANCE=prod  # Para producción
-      - ODOO_ENV=production  # 🏗️ Define el entorno como Producción
-      - PGHOST=${PGHOST:-prod-postgres}  # 🐘 PostgreSQL en Producción
-      - PGPORT=${PGPORT:-5432}  
-      - PGUSER=${PGUSER:-odoo}  
-      - PGPASSWORD=${PGPASSWORD:-prod_password}  
-      - PGDATABASE=${PGDATABASE:-odoo_prod}  
-      - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-prod-redis}  
-      - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}  
-      - WORKERS=4  # 🚀 Optimización para Producción
-      - MAX_CRON_THREADS=2  
-      - LIMIT_TIME_CPU=120  
-      - LIMIT_TIME_REAL=300  
-      - LIMIT_MEMORY_SOFT=2000000000  
-      - LIMIT_MEMORY_HARD=2500000000  
-      - PROXY_MODE=True  # 🌍 Habilita proxy para balanceadores de carga
-      - DB_SSLMODE=require  # 🔒 Requiere SSL en PostgreSQL
-      - DISABLE_SESSION_GC=True  # 🚀 Optimización de sesiones
+      - ODOO_ENV=production  # 🔹 Es suficiente para que el entrypoint gestione todo lo demás
     networks:
       - odoo-network
 

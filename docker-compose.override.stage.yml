@@ -5,18 +5,8 @@
 services:
   odoo:
     container_name: stage-odoo
-    ports:
-      - "${ODOO_PORT:-8070}:8069"  # 📌 Odoo en puerto 8070 para Staging
     environment:
-      - INSTANCE=stage  # Para preprdoucción
-      - ODOO_ENV=staging  # 🏗️ Define el entorno como Staging
-      - PGHOST=${PGHOST:-stage-postgres}  # 🐘 PostgreSQL en Staging
-      - PGPORT=${PGPORT:-5432}  
-      - PGUSER=${PGUSER:-odoo}  
-      - PGPASSWORD=${PGPASSWORD:-staging_password}  
-      - PGDATABASE=${PGDATABASE:-odoo_stage}  
-      - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-stage-redis}  
-      - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}  
+      - ODOO_ENV=staging  # 🔹 Es suficiente para que el entrypoint gestione todo lo demás 
     networks:
       - odoo-network
 

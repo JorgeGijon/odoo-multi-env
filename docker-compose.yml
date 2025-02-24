@@ -11,14 +11,6 @@ services:
       dockerfile: Dockerfile.odoo  
     #container_name: ${INSTANCE:-dev}-odoo  
     restart: unless-stopped
-    environment:
-      - INSTANCE=${INSTANCE:-dev}
-      - ODOO_ENV=${ODOO_ENV:-development}
-      - PGHOST=${INSTANCE:-dev}-postgres
-      - PGPORT=5432
-      - PGUSER=${POSTGRES_USER:-odoo}
-      - PGPASSWORD=${POSTGRES_PASSWORD:-odoo_password}
-      - PGDATABASE=${POSTGRES_DB:-odoo}
     entrypoint: ["/entrypoint.sh"]
     depends_on:
       postgres:

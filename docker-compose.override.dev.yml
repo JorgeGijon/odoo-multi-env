@@ -5,20 +5,8 @@
 services:
   odoo:
     container_name: dev-odoo
-    ports:
-      - "${ODOO_PORT:-8069}:8069"  # 📌 Odoo en localhost (Desarrollo)
-      - "${DEBUGPY_PORT:-5678}:5678"  # 🛠️ DebugPy para depuración remota
     environment:
-      - INSTANCE=dev  # Para desarrollo
-      - ODOO_ENV=development  # 🏗️ Define el entorno como Desarrollo
-      - DEBUGPY_PORT=5678      # 🔍 Puerto para DebugPy
-      - PGHOST=${PGHOST:-dev-postgres}  # 🐘 Conexión a PostgreSQL
-      - PGPORT=${PGPORT:-5432}  
-      - PGUSER=${PGUSER:-odoo}  
-      - PGPASSWORD=${PGPASSWORD:-odoo_password}  
-      - PGDATABASE=${PGDATABASE:-odoo_dev}  
-      - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-dev-redis}  
-      - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6380}  
+      - ODOO_ENV=development  # 🔹 Es suficiente para que el entrypoint gestione todo lo demás 
     networks:
       - odoo-network
 
