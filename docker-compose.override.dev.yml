@@ -3,16 +3,13 @@
 # docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d --remove-orphans
 
 services:
+  # 🏗️ Odoo en modo Desarrollo
   odoo:
     container_name: dev-odoo
     environment:
-      - ODOO_ENV=development  # 🔹 Es suficiente para que el entrypoint gestione todo lo demás 
+      - ODOO_ENV=development  # 🔹 Define el entorno (el entrypoint gestiona todo lo demás)
     networks:
       - odoo-network
-
-    # 🔹 **Activar DebugPy solo en Desarrollo**
-    profiles:
-      - "dev"
     volumes:
       - ./addons:/mnt/custom-addons                      # 🔌 Monta los módulos personalizados
       - ./odoo-src:/usr/lib/python3/dist-packages/odoo   # 🖥️ Acceso al código fuente de Odoo
@@ -26,28 +23,34 @@ services:
       - "--wait-for-client" 
       - "/usr/bin/odoo"  # 🏗️ Odoo esperará la conexión del depurador antes de ejecutarse
 
+  # 🐘 PostgreSQL en Desarrollo
   postgres:
     container_name: dev-postgres
     environment:
-      - ODOO_ENV=development
+      - ODOO_ENV=development  # 📌 Es suficiente para que el entrypoint asigne variables
     networks:
       - odoo-network
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data  # 💾 Datos persistentes de PostgreSQL
 
+  # 🔴 Redis en Desarrollo
   redis:
-    container_name: ${INSTANCE:-prueba}-redis
+    container_name: dev-redis
     image: redis:latest
     restart: unless-stopped
     environment:
-      - REDIS_PORT=6380
-      - REDIS_PASSWORD=
-      - REDIS_MAXMEMORY=256mb
-      - REDIS_MAXMEMORY_POLICY=noeviction
-      - REDIS_APPENDONLY=no
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      retries: 5
-    ports:
-      - "6380:6379"  # 🔴 Expone Redis en otro puerto para pruebas
+      - ODOO_ENV=development  # 📌 Redis también se configura en función del entorno
     networks:
       - odoo-network
+    ports:
+      - "6380:6379"  # 🔴 Expone Redis en otro puerto para evitar conflictos
+
+  # 🛢️ PGBackup en Desarrollo
+  pgbackup:
+    container_name: dev-pgbackup
+    environment:
+      - ODOO_ENV=development  # 📌 El entrypoint manejará las variables necesarias
+    networks:
+      - odoo-network
+    volumes:
+      - ./backups:/backups  # 💾 Carpeta local para backups
