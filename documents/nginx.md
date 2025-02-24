@@ -153,4 +153,3 @@ Nginx es una pieza clave en la infraestructura de Odoo en entornos **Staging y P
 ---
 
 📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
-
