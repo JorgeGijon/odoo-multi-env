@@ -224,26 +224,56 @@ Ejemplo del Script update_readme.py
 Este es un ejemplo muy básico para ilustrar la idea. Puedes modificarlo para que actualice información dinámica (por ejemplo, fecha, resultados de tests, métricas, etc.):
 ```powershell
 #!/usr/bin/env python3
+import subprocess
 import datetime
+import re
 
-# Abre el archivo README.md y actualiza el contenido
-with open("README.md", "r", encoding="utf-8") as file:
-    content = file.read()
+def get_commit_count():
+    """Obtiene el número total de commits en la rama actual."""
+    result = subprocess.run(["git", "rev-list", "--count", "HEAD"], stdout=subprocess.PIPE, text=True)
+    return result.stdout.strip()
 
-# Actualiza o agrega una sección con la fecha de última actualización
-nueva_seccion = f"\n\n## Última actualización\nActualizado el {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+def get_last_commit_date():
+    """Obtiene la fecha del último commit (en formato YYYY-MM-DD)."""
+    result = subprocess.run(["git", "log", "-1", "--format=%cd", "--date=short"], stdout=subprocess.PIPE, text=True)
+    return result.stdout.strip()
 
-# Aquí se puede definir una lógica más compleja para modificar el contenido
-if "## Última actualización" in content:
-    # Si ya existe, reemplazar esa sección (simplificado)
-    partes = content.split("## Última actualización")
-    content = partes[0] + nueva_seccion
-else:
-    content += nueva_seccion
+def update_readme(content):
+    """Actualiza o agrega una sección con información dinámica."""
+    last_update = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    commit_count = get_commit_count()
+    last_commit_date = get_last_commit_date()
 
-# Escribe el contenido actualizado en el README.md
-with open("README.md", "w", encoding="utf-8") as file:
-    file.write(content)
+    nueva_seccion = f"""
+## Información Dinámica
+
+- **Última actualización del README:** {last_update}
+- **Número de commits en main:** {commit_count}
+- **Fecha del último commit:** {last_commit_date}
+"""
+
+    # Si ya existe la sección, reemplazarla
+    if "## Información Dinámica" in content:
+        content = re.sub(r"## Información Dinámica(.|\n)*", nueva_seccion, content, flags=re.DOTALL)
+    else:
+        content += "\n" + nueva_seccion
+    return content
+
+def main():
+    try:
+        with open("README.md", "r", encoding="utf-8") as f:
+            content = f.read()
+    except FileNotFoundError:
+        content = ""
+
+    updated_content = update_readme(content)
+
+    with open("README.md", "w", encoding="utf-8") as f:
+        f.write(updated_content)
+
+if __name__ == "__main__":
+    main()
+
 ```
 ---
 
