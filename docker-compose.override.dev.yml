@@ -1,23 +1,22 @@
-#-----------------------------------------------------------------------------
-# 🛠️ Ejecutar en Desarrollo (Windows):    
-# docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
-#-----------------------------------------------------------------------------
+# 📌 Configuración específica para el entorno de Desarrollo
+# Se ejecuta con:
+# docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d --remove-orphans
 
 services:
-  # 🏗️ Odoo - Aplicación ERP en Desarrollo, Stage y Producción
   odoo:
-    container_name: ${INSTANCE:-prueba}-odoo
+    container_name: dev-odoo
     ports:
-      - "${ODOO_PORT:-8069}:8069"  # 📌 Puerto HTTP de Odoo
+      - "${ODOO_PORT:-8069}:8069"  # 📌 Odoo en localhost (Desarrollo)
+      - "${DEBUGPY_PORT:-5678}:5678"  # 🛠️ DebugPy para depuración remota
     environment:
-      - ODOO_ENV=${ODOO_ENV:-development}  # 🏗️ Define el entorno dinámicamente
-      - DEBUGPY_PORT=${DEBUGPY_PORT:-5678}  # 🔍 Puerto para DebugPy (Solo en desarrollo)
-      - PGHOST=${PGHOST:-prueba-postgres}  # 🐘 Conexión a PostgreSQL
+      - ODOO_ENV=development  # 🏗️ Define el entorno como Desarrollo
+      - DEBUGPY_PORT=5678      # 🔍 Puerto para DebugPy
+      - PGHOST=${PGHOST:-dev-postgres}  # 🐘 Conexión a PostgreSQL
       - PGPORT=${PGPORT:-5432}  
       - PGUSER=${PGUSER:-odoo}  
       - PGPASSWORD=${PGPASSWORD:-odoo_password}  
       - PGDATABASE=${PGDATABASE:-odoo_dev}  
-      - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-prueba-redis}  
+      - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-dev-redis}  
       - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6380}  
     networks:
       - odoo-network
@@ -25,6 +24,10 @@ services:
     # 🔹 **Activar DebugPy solo en Desarrollo**
     profiles:
       - "dev"
+    volumes:
+      - ./addons:/mnt/custom-addons  # 🔄 Monta los módulos personalizados para desarrollo en caliente
+      - ./odoo-src:/usr/lib/python3/dist-packages/odoo  # 🔍 Acceso al código fuente de Odoo
+      - ./data/odoo:/var/lib/odoo  # 📂 Almacena datos persistentes de Odoo en Desarrollo
     command: 
       - "python3" 
       - "-m" 
@@ -34,19 +37,24 @@ services:
       - "--wait-for-client" 
       - "/usr/bin/odoo"  # 🏗️ Odoo esperará la conexión del depurador antes de ejecutarse
 
-
-  # 🐘 PostgreSQL en desarrollo
   postgres:
-    env_file:
-      - .env.dev
-    container_name: ${INSTANCE:-dev}-postgres
+    container_name: dev-postgres
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo_password
+      - POSTGRES_DB=odoo_dev
     ports:
-      - "5433:5432"  # 📌 Puerto alternativo para PostgreSQL en Dev
+      - "5433:5432"  # 🐘 Expone PostgreSQL en un puerto diferente al estándar
+    networks:
+      - odoo-network
 
-  # 🔴 Redis en desarrollo
   redis:
-    env_file:
-      - .env.dev
-    container_name: ${INSTANCE:-dev}-redis
+    container_name: dev-redis
+    environment:
+      - REDIS_PASSWORD=
+      - REDIS_MAXMEMORY=256mb
+      - REDIS_MAXMEMORY_POLICY=noeviction
     ports:
-      - "6380:6379"  # 📌 Puerto alternativo para Redis en Dev
+      - "6380:6379"  # 🔴 Expone Redis en otro puerto para pruebas
+    networks:
+      - odoo-network
