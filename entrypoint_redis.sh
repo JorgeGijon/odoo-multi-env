@@ -3,13 +3,8 @@ set -e  # ⛔ Detener ejecución en caso de error
 
 echo "🟢 [INFO] Iniciando Redis con la configuración personalizada..."
 
-# 📂 Asegurar que el directorio de configuración existe antes de escribir el archivo
+# 📂 Verificar si el archivo de configuración existe
 REDIS_CONF="/etc/redis/redis.conf"
-
-if [[ ! -d "/etc/redis" ]]; then
-  echo "⚠️ [WARN] El directorio /etc/redis no existe. Creándolo..."
-  mkdir -p /etc/redis
-fi
 
 if [[ ! -f "$REDIS_CONF" ]]; then
   echo "⚠️ [WARN] Archivo de configuración de Redis no encontrado. Creando uno nuevo..."
