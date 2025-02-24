@@ -1,0 +1,18 @@
+# 🏗️ Basado en la imagen oficial de Redis
+FROM redis:latest
+
+# 🛠️ Ejecutar como root para configurar el sistema de archivos
+USER root
+
+# 📂 **Crear directorio de datos y asignar permisos**
+RUN mkdir -p /data && chmod -R 777 /data && chown -R redis:redis /data
+
+# 🔧 **Copiar el script de entrada y asignar permisos**
+COPY entrypoint_redis.sh /entrypoint_redis.sh
+RUN chmod +x /entrypoint_redis.sh
+
+# 👤 **Cambiar al usuario 'redis' para la ejecución**
+USER redis
+
+# 🏁 **Definir el entrypoint**
+ENTRYPOINT ["/entrypoint_redis.sh"]
