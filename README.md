@@ -202,21 +202,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
-### 🔹 Descripción del Workflow
+### 🔹 **Descripción del Workflow**
 
-    Activación del Workflow:
+#### 🔹 Activación del Workflow:
     Se ejecuta en cada push a la rama main y también se programa para que se ejecute diariamente (esto se puede ajustar o quitar según tus necesidades).
 
-    Checkout del Repositorio:
+#### 🔹 Checkout del Repositorio:
     Se utiliza la acción actions/checkout@v3 para obtener el contenido del repositorio.
 
-    Ejecutar el Script de Actualización:
+#### 🔹 Ejecutar el Script de Actualización:
     Se ejecuta el script update_readme.py (debes crearlo en la raíz o en la ubicación que prefieras). Este script debe contener la lógica para generar o modificar el contenido del README según lo que necesites actualizar automáticamente.
 
-    Configurar Git:
+#### 🔹 Configurar Git:
     Se configuran el nombre y correo para que Git pueda crear el commit de forma automática.
 
-    Commit y Push Automático:
+#### 🔹 Commit y Push Automático:
     Se añade el archivo README.md y, si hay cambios (se comprueba con git diff --cached --quiet), se realiza el commit con el mensaje "Auto-actualización del README [skip ci]" y se realiza un push. La variable GITHUB_TOKEN (disponible por defecto en los repositorios de GitHub Actions) se utiliza para la autenticación.
 
 Ejemplo del Script update_readme.py
