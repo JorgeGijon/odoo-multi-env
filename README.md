@@ -160,6 +160,22 @@ Write-Host "✅ Permisos asignados correctamente."
 ```
 ---
 
+---
+
+## 📦 **Extras**
+
+| **Contenedor**  | **Función** | **Uso en Entorno** | **Documentación** |
+|----------------|------------|--------------------|----------------|
+| **Git Workflow** | .github/workflows/update-readme.yml | Dev, Staging, Prod | [Guía](./documents/odoo.md) |
+| **PostgreSQL** | Base de datos | Dev, Staging, Prod | [Guía](./documents/postgres.md) |
+| **Redis** | Caché y sesiones | Dev, Staging, Prod | [Guía](./documents/redis.md) |
+| **PGBackup** | Copias automáticas de PostgreSQL | Dev, Staging, Prod | [Guía](./documents/pgbackup.md) |
+| **DebugPy** | Depuración remota | Dev | [Guía](./documents/debugpy.md) |
+| **Nginx (Opcional)** | Proxy inverso con HTTPS | Staging, Prod | [Guía](./documents/nginx.md) |
+
+---
+
+
 ## 🔧 **Workflow** (.github/workflows/update-readme.yml)
 ```powershell
 name: Actualizar README automáticamente
