@@ -202,7 +202,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
-Descripción del Workflow
+### 🔹 Descripción del Workflow
 
     Activación del Workflow:
     Se ejecuta en cada push a la rama main y también se programa para que se ejecute diariamente (esto se puede ajustar o quitar según tus necesidades).
@@ -244,6 +244,7 @@ else:
 # Escribe el contenido actualizado en el README.md
 with open("README.md", "w", encoding="utf-8") as file:
     file.write(content)
+```
 ---
 
 📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
