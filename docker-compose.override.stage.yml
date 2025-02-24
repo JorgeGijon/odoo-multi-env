@@ -6,13 +6,18 @@
 services:
   # 🏗️ Odoo en modo Stage
   odoo:
-    env_file:
-      - .env.stage
     container_name: ${INSTANCE:-stage}-odoo
     ports:
-      - "8070:8069"  # 📌 Puerto HTTP de Odoo para Stage
+      - "${ODOO_PORT:-8070}:8069"  # 📌 Odoo en puerto 8070 para Staging
     environment:
-      - ODOO_ENV=staging  # 🏗️ Define el entorno como Stage
+      - ODOO_ENV=staging  # 🏗️ Define el entorno como Staging
+      - PGHOST=${PGHOST:-stage-postgres}  # 🐘 PostgreSQL en Staging
+      - PGPORT=${PGPORT:-5432}  
+      - PGUSER=${PGUSER:-odoo}  
+      - PGPASSWORD=${PGPASSWORD:-staging_password}  
+      - PGDATABASE=${PGDATABASE:-odoo_stage}  
+      - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-stage-redis}  
+      - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}  
     networks:
       - odoo-network
 
