@@ -33,7 +33,9 @@ COPY --chown=odoo:odoo /custom_addons /mnt/custom-addons
 
 # 🔧 Copiar configuración de Odoo y asignar permisos adecuados
 COPY ./config/odoo.conf /etc/odoo/odoo.conf
-RUN chown -R odoo:odoo /etc/odoo/odoo.conf
+RUN id -u odoo &>/dev/null || useradd -m -d /var/lib/odoo -s /bin/bash odoo && \
+    chown -R odoo:odoo /etc/odoo/odoo.conf
+
 
 # 📂 Ajustar permisos de directorios críticos para evitar problemas de acceso
 RUN mkdir -p /var/lib/odoo/filestore && chmod -R 777 /var/lib/odoo/filestore
