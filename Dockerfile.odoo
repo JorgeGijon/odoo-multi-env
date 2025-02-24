@@ -7,14 +7,18 @@ USER root
 # 🔄 Configurar entorno sin prompts interactivos
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 🔹 Instalar paquetes necesarios, incluyendo postgresql-client
+# 🏗️ Añadir repositorio correcto para PostgreSQL y asegurarnos de que usamos la misma versión de `libpq`
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+# 🔹 Instalar paquetes necesarios, asegurando compatibilidad con PostgreSQL 16
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext-base curl git vim nano net-tools wget unzip \
-    postgresql-client \
-    libpq-dev python3-venv python3-dev locales \
+    postgresql-client-16 libpq-dev=16.6-0ubuntu0.24.04.1 libpq5=16.6-0ubuntu0.24.04.1 \
+    python3-venv python3-dev locales \
     && rm -rf /var/lib/apt/lists/*
 
-# 🌍 Configurar `locale` correctamente
+# 🌍 Configurar `locale` correctamente para evitar warnings de Perl
 RUN locale-gen en_US.UTF-8 && \
     dpkg-reconfigure --frontend=noninteractive locales && \
     update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
