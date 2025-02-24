@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# 🛠️ Ejecutar en Desarrollo (Windows):
+# 🛠️ Ejecutar en Desarrollo (Windows):    
 # docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d
 #-----------------------------------------------------------------------------
 
