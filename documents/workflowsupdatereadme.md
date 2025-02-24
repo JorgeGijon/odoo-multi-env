@@ -3,21 +3,27 @@
 ```powershell
 name: Actualizar README automáticamente
 
-# El workflow se activará en cada push a la rama main y también se puede programar (cron)
 on:
   push:
     branches:
       - main
   schedule:
-    - cron: '0 0 * * *'  # Se ejecuta diariamente a medianoche (ajusta según necesites)
+    - cron: '0 0 * * *'  # Se ejecuta diariamente a medianoche
 
 jobs:
   update-readme:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clonar el repositorio
+      - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Obtiene el historial completo
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: Ejecutar script de actualización del README
         run: |
@@ -25,13 +31,12 @@ jobs:
 
       - name: Configurar Git
         run: |
-          git config --local user.email "tu-email@ejemplo.com"
-          git config --local user.name "Tu Nombre"
+          git config --local user.email "jorgegr.gijon@gmail.com"
+          git config --local user.name "JorgeGR"
 
-      - name: Commit de cambios en README
+      - name: Commit de cambios en README si hay actualizaciones
         run: |
           git add README.md
-          # Si hay cambios, se realiza el commit
           if ! git diff --cached --quiet; then
             git commit -m "Auto-actualización del README [skip ci]"
             git push
