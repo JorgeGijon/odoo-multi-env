@@ -135,38 +135,17 @@ git pull
 ---
 ---
 
-## 🔒 **Configuración de Permisos en Archivos y Directorios**
 
-### 🔹 **En Ubuntu (Linux)**
-```sh
-mkdir -p data/config data/odoo data/filestore data/postgres data/redis addons
-sudo chown -R 1000:1000 data addons
-sudo chmod -R 777 data addons
-```
-
-### 🔹 **En Windows (PowerShell)**
-```powershell
-$folders = @("data\config", "data\odoo", "data\filestore", "data\postgres", "data\redis", "addons")
-foreach ($folder in $folders) {
-    if (!(Test-Path $folder)) {
-        New-Item -ItemType Directory -Path $folder -Force
-    }
-}
-
-$folders | ForEach-Object {
-    icacls $_ /grant "Todos":F /T /C /Q
-}
-Write-Host "✅ Permisos asignados correctamente."
-```
 ---
 
 ---
 
 ## 📦 **Extras**
 
-| **Contenedor**  | **Función** | **Uso en Entorno** | **Documentación** |
-|----------------|------------|--------------------|----------------|
-| **Git Workflow** | .github/workflows/update-readme.yml | Dev, Staging, Prod | [Guía](./documents/workflowsupdatereadme.md) |
+| **Contenedor**  | **Función** | **Documentación** |
+|----------------|------------|----------------|
+| **Permisos** | Permisos en Archivos y Directorios | [Guía](./documents/permisos.md) |
+| **Git Workflow** | .github/workflows/update-readme.yml | [Guía](./documents/workflowsupdatereadme.md) |
 
 
 ---
