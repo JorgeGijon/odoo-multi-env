@@ -21,20 +21,20 @@ services:
         condition: service_healthy  # ✅ Espera a que Redis esté listo
     environment:
       # 🖼️ Configuración de almacenamiento de archivos adjuntos
-      - ATTACHMENT_STORAGE=db  # 📁 Define si los adjuntos se guardan en la base de datos o en disco
+      - ATTACHMENT_STORAGE=db         # 📁 Define si los adjuntos se guardan en la base de datos o en disco
 
       # 🚀 Optimización de rendimiento
-      - WORKERS=3  # 🔹 Número de procesos trabajadores para manejar múltiples solicitudes (Usa 3 de 4 CPUs)
-      - MAX_CRON_THREADS=1  # ⏲️ Número de hilos en procesos cron (Eficiencia en tareas programadas)
-      - LIMIT_TIME_CPU=60  # ⏳ Límite de tiempo de CPU por solicitud en segundos
-      - LIMIT_TIME_REAL=120  # ⏳ Límite de tiempo real por solicitud en segundos
+      - WORKERS=3                     # 🔹 Número de procesos trabajadores para manejar múltiples solicitudes (Usa 3 de 4 CPUs)
+      - MAX_CRON_THREADS=1            # ⏲️ Número de hilos en procesos cron (Eficiencia en tareas programadas)
+      - LIMIT_TIME_CPU=60             # ⏳ Límite de tiempo de CPU por solicitud en segundos
+      - LIMIT_TIME_REAL=120           # ⏳ Límite de tiempo real por solicitud en segundos
       - LIMIT_MEMORY_SOFT=1000000000  # 💾 Límite de memoria "suave" (1GB, Odoo intentará optimizar memoria)
       - LIMIT_MEMORY_HARD=1500000000  # 💾 Límite de memoria "dura" (1.5GB, Odoo se reiniciará si lo supera)
 
       # 🔐 Seguridad y conexiones
-      - DB_SSLMODE=prefer  # 🔐 Habilita SSL si está disponible en PostgreSQL
-      - PROXY_MODE=True  # 🌍 Habilita el modo proxy para balanceadores de carga
-      - DISABLE_SESSION_GC=True  # 🛑 Desactiva la recolección de sesiones para mejorar rendimiento
+      - DB_SSLMODE=prefer                 # 🔐 Habilita SSL si está disponible en PostgreSQL
+      - PROXY_MODE=True                   # 🌍 Habilita el modo proxy para balanceadores de carga
+      - DISABLE_SESSION_GC=True           # 🛑 Desactiva la recolección de sesiones para mejorar rendimiento
       - PYDEVD_DISABLE_FILE_VALIDATION=1  # ⚙️ Deshabilita validación de archivos en depuración   
     volumes:
       - ./entrypoint_odoo.sh:/entrypoint.sh:ro           # 🚀 Script de inicio para Odoo
