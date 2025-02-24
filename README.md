@@ -202,6 +202,48 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+Descripción del Workflow
+
+    Activación del Workflow:
+    Se ejecuta en cada push a la rama main y también se programa para que se ejecute diariamente (esto se puede ajustar o quitar según tus necesidades).
+
+    Checkout del Repositorio:
+    Se utiliza la acción actions/checkout@v3 para obtener el contenido del repositorio.
+
+    Ejecutar el Script de Actualización:
+    Se ejecuta el script update_readme.py (debes crearlo en la raíz o en la ubicación que prefieras). Este script debe contener la lógica para generar o modificar el contenido del README según lo que necesites actualizar automáticamente.
+
+    Configurar Git:
+    Se configuran el nombre y correo para que Git pueda crear el commit de forma automática.
+
+    Commit y Push Automático:
+    Se añade el archivo README.md y, si hay cambios (se comprueba con git diff --cached --quiet), se realiza el commit con el mensaje "Auto-actualización del README [skip ci]" y se realiza un push. La variable GITHUB_TOKEN (disponible por defecto en los repositorios de GitHub Actions) se utiliza para la autenticación.
+
+Ejemplo del Script update_readme.py
+
+Este es un ejemplo muy básico para ilustrar la idea. Puedes modificarlo para que actualice información dinámica (por ejemplo, fecha, resultados de tests, métricas, etc.):
+```powershell
+#!/usr/bin/env python3
+import datetime
+
+# Abre el archivo README.md y actualiza el contenido
+with open("README.md", "r", encoding="utf-8") as file:
+    content = file.read()
+
+# Actualiza o agrega una sección con la fecha de última actualización
+nueva_seccion = f"\n\n## Última actualización\nActualizado el {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+
+# Aquí se puede definir una lógica más compleja para modificar el contenido
+if "## Última actualización" in content:
+    # Si ya existe, reemplazar esa sección (simplificado)
+    partes = content.split("## Última actualización")
+    content = partes[0] + nueva_seccion
+else:
+    content += nueva_seccion
+
+# Escribe el contenido actualizado en el README.md
+with open("README.md", "w", encoding="utf-8") as file:
+    file.write(content)
 ---
 
 📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
