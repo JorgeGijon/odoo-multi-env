@@ -1,52 +1,84 @@
 #!/bin/bash
 
-# 📌 Entrypoint para backup automático de PostgreSQL
-# Este script ejecuta copias de seguridad periódicas y maneja errores
+# 📌 Entrypoint para copias de seguridad automáticas de PostgreSQL
+# 🛠️ Este script se encarga de generar backups periódicos de la base de datos de Odoo
 
-set -e  # ⛔ Si ocurre un error, el script se detiene inmediatamente.
+set -e  # ⛔ Si hay un error, el script se detiene inmediatamente.
 set -u  # 🔒 Tratar variables no definidas como error.
 set -o pipefail  # 🚀 Detectar fallos en comandos en tuberías (|).
 
-echo "🟢 [INFO] Iniciando servicio de backup de PostgreSQL..."
+echo "🛢️ [INFO] Iniciando entrypoint de PGBackup..."
 
-# 🔹 Definir variables de entorno con valores predeterminados
-BACKUP_INTERVAL=${BACKUP_INTERVAL:-86400}  # ⏳ Intervalo entre backups en segundos (24h por defecto)
-BACKUP_DIR="/backups"
-PGHOST=${PGHOST:-postgres}  # 📌 Servidor de PostgreSQL
-PGUSER=${PGUSER:-odoo}  # 👤 Usuario de PostgreSQL
-PGDATABASE=${PGDATABASE:-odoo}  # 🗄️ Base de datos a respaldar
+# 📌 **Detectar entorno**
+ODOO_ENV="${ODOO_ENV:-development}"  # Si no está definido, usar 'development'
 
-# 📂 Asegurar que el directorio de backups existe
-mkdir -p "$BACKUP_DIR"
-chmod -R 777 "$BACKUP_DIR"
-echo "🔹 Directorio de backups: $BACKUP_DIR"
+# 📌 **Asignar variables según el entorno**
+case "$ODOO_ENV" in
+  "development")
+    PGHOST="dev-postgres"
+    PGPORT=5432
+    PGUSER="odoo"
+    PGPASSWORD="odoo_password"
+    PGDATABASE="odoo_dev"
+    BACKUP_INTERVAL=43200  # ⏳ Cada 12 horas en desarrollo
+    ;;
+  "staging")
+    PGHOST="stage-postgres"
+    PGPORT=5432
+    PGUSER="odoo"
+    PGPASSWORD="staging_password"
+    PGDATABASE="odoo_stage"
+    BACKUP_INTERVAL=86400  # ⏳ Cada 24 horas en staging
+    ;;
+  "production")
+    PGHOST="prod-postgres"
+    PGPORT=5432
+    PGUSER="odoo"
+    PGPASSWORD="prod_password"
+    PGDATABASE="odoo_prod"
+    BACKUP_INTERVAL=86400  # ⏳ Cada 24 horas en producción
+    ;;
+  *)
+    echo "❌ [ERROR] ODOO_ENV '$ODOO_ENV' no reconocido. Abortando."
+    exit 1
+    ;;
+esac
 
-# 🔍 **Verificar conexión con PostgreSQL antes de iniciar backups**
-echo "⏳ [INFO] Verificando disponibilidad de PostgreSQL en: $PGHOST..."
-until pg_isready -h "$PGHOST" -U "$PGUSER" > /dev/null 2>&1; do
+echo "🟢 [INFO] Variables de entorno cargadas para $ODOO_ENV:"
+echo "    🔹 PGHOST: $PGHOST"
+echo "    🔹 PGPORT: $PGPORT"
+echo "    🔹 PGUSER: $PGUSER"
+echo "    🔹 PGPASSWORD: ${PGPASSWORD:+********}"  # 🔒 Ocultar en logs
+echo "    🔹 PGDATABASE: $PGDATABASE"
+echo "    🔹 BACKUP_INTERVAL: $BACKUP_INTERVAL"
+
+# 📌 **Esperar a que PostgreSQL esté listo**
+echo "🔄 [INFO] Verificando conexión con PostgreSQL en: $PGHOST:$PGPORT..."
+until pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER"; do
   echo "🔄 [INFO] PostgreSQL aún no está listo, esperando 5 segundos..."
   sleep 5
 done
-echo "✅ [INFO] PostgreSQL está disponible. Procediendo con backups..."
+echo "✅ [INFO] PostgreSQL está disponible."
 
-# 🔄 Función para realizar backup
-do_backup() {
-  TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-  BACKUP_FILE="$BACKUP_DIR/backup_$TIMESTAMP.sql"
-  echo "🔄 [INFO] Realizando backup en: $BACKUP_FILE"
-  if pg_dumpall -h "$PGHOST" -U "$PGUSER" > "$BACKUP_FILE"; then
-    ln -sf "$BACKUP_FILE" "$BACKUP_DIR/latest_backup.sql"
-    echo "✅ [INFO] Backup completado con éxito: $BACKUP_FILE"
-  else
-    echo "❌ [ERROR] Error al realizar el backup."
-    exit 1
-  fi
-}
+# 📌 **Crear carpeta de backups si no existe**
+BACKUP_DIR="/backups"
+mkdir -p "$BACKUP_DIR"
+chmod -R 777 "$BACKUP_DIR"
 
-# 🔁 Ejecutar backups en intervalos definidos
-echo "⏳ [INFO] Iniciando ciclo de backups automáticos cada $BACKUP_INTERVAL segundos..."
+# 📌 **Loop infinito para hacer backups según el intervalo configurado**
 while true; do
-  do_backup
-  echo "⏳ [INFO] Siguiente backup en $BACKUP_INTERVAL segundos..."
+  TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+  BACKUP_FILE="$BACKUP_DIR/${PGDATABASE}_backup_$TIMESTAMP.sql.gz"
+
+  echo "🛢️ [INFO] Iniciando backup de PostgreSQL: $BACKUP_FILE"
+  PGPASSWORD="$PGPASSWORD" pg_dump -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" "$PGDATABASE" | gzip > "$BACKUP_FILE"
+
+  if [[ $? -eq 0 ]]; then
+    echo "✅ [INFO] Backup exitoso: $BACKUP_FILE"
+  else
+    echo "❌ [ERROR] Fallo al crear el backup de PostgreSQL."
+  fi
+
+  echo "⏳ [INFO] Esperando $BACKUP_INTERVAL segundos para el próximo backup..."
   sleep "$BACKUP_INTERVAL"
 done
