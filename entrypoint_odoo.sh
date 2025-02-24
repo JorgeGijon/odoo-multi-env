@@ -26,6 +26,12 @@ case "$ODOO_ENV" in
     REDIS_HOST="dev-redis"
     REDIS_PORT=6380
     BACKUP_INTERVAL=43200
+    WORKERS=0
+    MAX_CRON_THREADS=1
+    LIMIT_TIME_CPU=60
+    LIMIT_TIME_REAL=120
+    LIMIT_MEMORY_SOFT=1000000000
+    LIMIT_MEMORY_HARD=1500000000
     ;;
   "staging")
     INSTANCE="stage"
@@ -38,6 +44,12 @@ case "$ODOO_ENV" in
     REDIS_HOST="stage-redis"
     REDIS_PORT=6379
     BACKUP_INTERVAL=86400
+    WORKERS=2
+    MAX_CRON_THREADS=1
+    LIMIT_TIME_CPU=90
+    LIMIT_TIME_REAL=180
+    LIMIT_MEMORY_SOFT=1500000000
+    LIMIT_MEMORY_HARD=2000000000
     ;;
   "production")
     INSTANCE="prod"
@@ -50,6 +62,12 @@ case "$ODOO_ENV" in
     REDIS_HOST="prod-redis"
     REDIS_PORT=6379
     BACKUP_INTERVAL=86400
+    WORKERS=4
+    MAX_CRON_THREADS=2
+    LIMIT_TIME_CPU=120
+    LIMIT_TIME_REAL=300
+    LIMIT_MEMORY_SOFT=2000000000
+    LIMIT_MEMORY_HARD=2500000000
     ;;
   *)
     echo "❌ [ERROR] ODOO_ENV '$ODOO_ENV' no reconocido. Abortando."
@@ -68,6 +86,9 @@ echo "    🔹 PGDATABASE: $PGDATABASE"
 echo "    🔹 REDIS_HOST: $REDIS_HOST"
 echo "    🔹 REDIS_PORT: $REDIS_PORT"
 echo "    🔹 BACKUP_INTERVAL: $BACKUP_INTERVAL"
+echo "    🔹 WORKERS: $WORKERS"
+echo "    🔹 LIMIT_TIME_CPU: $LIMIT_TIME_CPU"
+echo "    🔹 LIMIT_MEMORY_HARD: $LIMIT_MEMORY_HARD"
 
 # 📌 **Esperar a que PostgreSQL esté listo**
 echo "🔄 [INFO] Verificando conexión con PostgreSQL en: $PGHOST:$PGPORT..."
@@ -88,6 +109,12 @@ db_name = $PGDATABASE
 db_user = $PGUSER
 db_password = $PGPASSWORD
 http_port = $ODOO_PORT
+workers = $WORKERS
+max_cron_threads = $MAX_CRON_THREADS
+limit_time_cpu = $LIMIT_TIME_CPU
+limit_time_real = $LIMIT_TIME_REAL
+limit_memory_soft = $LIMIT_MEMORY_SOFT
+limit_memory_hard = $LIMIT_MEMORY_HARD
 EOF
 
 # 📌 **Configurar Redis si está habilitado**
