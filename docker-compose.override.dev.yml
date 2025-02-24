@@ -50,11 +50,19 @@ services:
       - odoo-network
 
   redis:
-    container_name: dev-redis
+    container_name: ${INSTANCE:-prueba}-redis
+    image: redis:latest
+    restart: unless-stopped
     environment:
+      - REDIS_PORT=6380
       - REDIS_PASSWORD=
       - REDIS_MAXMEMORY=256mb
       - REDIS_MAXMEMORY_POLICY=noeviction
+      - REDIS_APPENDONLY=no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
     ports:
       - "6380:6379"  # 🔴 Expone Redis en otro puerto para pruebas
     networks:
