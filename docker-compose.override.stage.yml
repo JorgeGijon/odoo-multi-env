@@ -35,10 +35,13 @@ services:
 
   # 🔴 Redis en Stage
   redis:
-    env_file:
-      - .env.stage
     container_name: ${INSTANCE:-stage}-redis
-    
+    environment:
+      - REDIS_PASSWORD=
+      - REDIS_MAXMEMORY=512mb
+      - REDIS_MAXMEMORY_POLICY=allkeys-lru
+    networks:
+      - odoo-network
 
   # 🌍 Nginx en Stage
   nginx:
