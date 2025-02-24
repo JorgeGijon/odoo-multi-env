@@ -160,8 +160,8 @@ Write-Host "✅ Permisos asignados correctamente."
 ```
 ---
 
-Workflow (.github/workflows/update-readme.yml)
-
+## 🔧 **Workflow** (.github/workflows/update-readme.yml)
+```powershell
 name: Actualizar README automáticamente
 
 # El workflow se activará en cada push a la rama main y también se puede programar (cron)
@@ -201,9 +201,7 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-Descripción del Workf
-
+```
 ---
 
 📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
