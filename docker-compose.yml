@@ -1,49 +1,42 @@
+# 📌 Definición del entorno base de Odoo con múltiples servicios
+version: "3.8"
+
 # 🌐 Red compartida entre los servicios de Odoo
 networks:
   odoo-network:
-    name: odoo-network
-    driver: bridge
-    # external: true  # 🔗 Permite compartir la red con otros proyectos
+    external: true  # 🔗 Permite compartir la red con otros proyectos
 
 services:
   # 🏗️ ODOO - Aplicación ERP
   odoo:
     build:
-      context: .                   # 📂 Usa la carpeta raíz como contexto de construcción
-      dockerfile: Dockerfile.odoo  # 🛠️ Especifica el Dockerfile para Odoo
-    container_name: ${INSTANCE:-prueba}-odoo  # 🏷️ Nombre dinámico del contenedor
+      context: .                   
+      dockerfile: Dockerfile.odoo  
+    container_name: ${INSTANCE:-prueba}-odoo  
     restart: unless-stopped
-    env_file:
-      - .env  # 🔹 Carga las variables generales desde el archivo `.env`
-    entrypoint: ["/entrypoint.sh"]  # 🏁 Ejecuta el script de entrada
+    environment:
+      - INSTANCE=${INSTANCE:-prueba}
+      - ODOO_ENV=${ODOO_ENV:-development}
+      - PGHOST=${INSTANCE:-prueba}-postgres
+      - PGPORT=5432
+      - PGUSER=${POSTGRES_USER:-odoo}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-odoo_password}
+      - PGDATABASE=${POSTGRES_DB:-odoo}
+    entrypoint: ["/entrypoint.sh"]
     depends_on:
       postgres:
-        condition: service_healthy  # ✅ Espera a que PostgreSQL esté listo
+        condition: service_healthy  
       redis:
-        condition: service_healthy  # ✅ Espera a que Redis esté listo
-    environment:
-      # 🖼️ Configuración de almacenamiento de archivos adjuntos
-      - ATTACHMENT_STORAGE=db         # 📁 Define si los adjuntos se guardan en la base de datos o en disco
-
-      # 🚀 Optimización de rendimiento
-      - WORKERS=3                     # 🔹 Número de procesos trabajadores para manejar múltiples solicitudes (Usa 3 de 4 CPUs)
-      - MAX_CRON_THREADS=1            # ⏲️ Número de hilos en procesos cron (Eficiencia en tareas programadas)
-      - LIMIT_TIME_CPU=60             # ⏳ Límite de tiempo de CPU por solicitud en segundos
-      - LIMIT_TIME_REAL=120           # ⏳ Límite de tiempo real por solicitud en segundos
-      - LIMIT_MEMORY_SOFT=1000000000  # 💾 Límite de memoria "suave" (1GB, Odoo intentará optimizar memoria)
-      - LIMIT_MEMORY_HARD=1500000000  # 💾 Límite de memoria "dura" (1.5GB, Odoo se reiniciará si lo supera)
-
-      # 🔐 Seguridad y conexiones
-      - DB_SSLMODE=prefer                 # 🔐 Habilita SSL si está disponible en PostgreSQL
-      - PROXY_MODE=True                   # 🌍 Habilita el modo proxy para balanceadores de carga
-      - DISABLE_SESSION_GC=True           # 🛑 Desactiva la recolección de sesiones para mejorar rendimiento
-      - PYDEVD_DISABLE_FILE_VALIDATION=1  # ⚙️ Deshabilita validación de archivos en depuración   
+        condition: service_healthy  
     volumes:
-      - ./entrypoint_odoo.sh:/entrypoint.sh:ro           # 🚀 Script de inicio para Odoo
-      - ./data/config:/config                            # 📜 Configuración dinámica (`odoo_dev.conf`, `odoo_prod.conf`)
-      - ./data/filestore:/var/lib/odoo/filestore         # 📂 Almacenamiento de archivos adjuntos
+      - ./entrypoint_odoo.sh:/entrypoint.sh:ro
+      - ./data/config:/config
+      - ./addons:/mnt/custom-addons
+      - ./odoo-src:/usr/lib/python3/dist-packages/odoo
+      - ./data/odoo:/var/lib/odoo
+      - ./data/filestore:/var/lib/odoo/filestore
     networks:
-      - odoo-network  # 🌍 Conexión a la red de Odoo
+      - odoo-network  
 
   # 🐘 POSTGRESQL - Base de datos
   postgres:
@@ -51,67 +44,63 @@ services:
     container_name: ${INSTANCE:-prueba}-postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=${POSTGRES_USER:-odoo}                   # 👤 Usuario de PostgreSQL
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo_password}  # 🔑 Contraseña de PostgreSQL
-      - POSTGRES_DB=${POSTGRES_DB:-odoo}                       # 📂 Base de datos de Odoo
-      # ⚙️ Configuración de optimización de PostgreSQL (Ajustada para 4 CPU / 4GB RAM)
-      - POSTGRES_SHARED_BUFFERS=1GB                    # 💾 Memoria compartida (25% de RAM disponible)
-      - POSTGRES_WORK_MEM=32MB                         # 💾 Memoria por operación (Mayor rendimiento en consultas grandes)
-      - POSTGRES_MAINTENANCE_WORK_MEM=128MB            # 🛠️ Memoria para mantenimiento (VACUUM, ANALYZE)
-      - POSTGRES_MAX_CONNECTIONS=60                    # 🔗 Máximo de conexiones simultáneas (Ajustado a carga media)
-      - POSTGRES_EFFECTIVE_CACHE_SIZE=2GB              # 🛠️ Caché efectiva (~50% de la RAM restante)
-      - POSTGRES_DEFAULT_STATISTICS_TARGET=100         # 📊 Optimización de consultas
-      - POSTGRES_AUTOVACUUM_MAX_WORKERS=3              # 🛠️ Control de autovacuum (Balanceado)
-      - POSTGRES_AUTOVACUUM_VACUUM_SCALE_FACTOR=0.08   # 🔄 Frecuencia de VACUUM
-      - POSTGRES_AUTOVACUUM_ANALYZE_SCALE_FACTOR=0.04  # 🔄 Frecuencia de ANALYZE
-      - POSTGRES_AUTOVACUUM_FREEZE_MAX_AGE=150000000   # 🔄 Reducción del freeze_max_age para estabilidad
-      - POSTGRES_HOST_AUTH_METHOD=md5                  # 🔐 Habilitar autenticación segura
-      - POSTGRES_INITDB_ARGS=--data-checksums          # 🛠️ Habilitar checksums en la base de datos
+      - INSTANCE=${INSTANCE:-prueba}
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo_password}
+      - POSTGRES_DB=${POSTGRES_DB:-odoo}
+      - PGDATA=/var/lib/postgresql/data
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data  # 💾 Datos persistentes de PostgreSQL
+      - ./data/postgres:/var/lib/postgresql/data  
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-odoo}"]  # 🩺 Verifica si PostgreSQL está listo
-      interval: 10s                              # ⏳ Verificación cada 10 segundos
-      retries: 5                                 # 🔄 Reintentos en caso de fallo
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-odoo}"]
+      interval: 10s                              
+      retries: 5                                 
     networks:
-      - odoo-network  # 🌍 Conexión a la red de Odoo
+      - odoo-network  
 
   # 🔴 REDIS - Caché y almacenamiento de sesiones
   redis:
-    image: redis:latest
+    build:
+      context: .  
+      dockerfile: Dockerfile.redis  
     container_name: ${INSTANCE:-prueba}-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes  # 🛠️ Configura Redis para persistencia
+    environment:
+      - INSTANCE=${INSTANCE:-prueba}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_MAXMEMORY=${REDIS_MAXMEMORY:-256mb}
+      - REDIS_MAXMEMORY_POLICY=${REDIS_MAXMEMORY_POLICY:-noeviction}
     volumes:
-      - ./data/redis:/data  # 💾 Datos persistentes de Redis
+      - ./data/redis:/data  
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]  # 🩺 Verifica si Redis está activo
-      interval: 10s                       # ⏳ Verificación cada 10 segundos
-      retries: 5                          # 🔄 Reintentos en caso de fallo
+      test: ["CMD", "redis-cli", "ping"]  
+      interval: 10s                       
+      retries: 5                          
     networks:
-      - odoo-network  # 🌍 Conexión a la red de Odoo
+      - odoo-network  
 
   # 🛢️ PGBackup - Backups automáticos de PostgreSQL
   pgbackup:
     build:
-      context: .  # 📂 Usa la carpeta raíz como contexto de construcción
-      dockerfile: Dockerfile.pgbackup  # 🛠️ Dockerfile del servicio de backup
+      context: .  
+      dockerfile: Dockerfile.pgbackup  
     container_name: ${INSTANCE:-prueba}-pgbackup
     restart: unless-stopped
-    entrypoint: ["/entrypoint_pgbackup.sh"]  # 🚀 Script de inicio de backups
+    entrypoint: ["/entrypoint_pgbackup.sh"]  
     environment:
-      - PGHOST=${INSTANCE:-prueba}-postgres      # 📌 Servidor de PostgreSQL
-      - PGUSER=${POSTGRES_USER:-odoo}            # 👤 Usuario de PostgreSQL
-      - PGPASSWORD=${POSTGRES_PASSWORD:-odoo_password}    # 🔑 Contraseña de PostgreSQL
-      - PGDATABASE=${POSTGRES_DB:-odoo}         # 📂 Base de datos de Odoo
-      - BACKUP_INTERVAL=${BACKUP_INTERVAL:-86400}       # ⏳ Intervalo entre backups (1 día)
+      - INSTANCE=${INSTANCE:-prueba}
+      - PGHOST=${INSTANCE:-prueba}-postgres      
+      - PGUSER=${POSTGRES_USER:-odoo}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-odoo_password}
+      - PGDATABASE=${POSTGRES_DB:-odoo}
+      - BACKUP_INTERVAL=${BACKUP_INTERVAL:-86400}  
     depends_on:
       postgres:
-        condition: service_healthy  # ✅ Espera a que PostgreSQL esté listo
+        condition: service_healthy  
     volumes:
-      - ./backups:/backups  # 💾 Carpeta local para backups
+      - ./backups:/backups  
     networks:
-      - odoo-network  # 🌍 Conexión a la red de Odoo
+      - odoo-network  
 
   # 🌍 NGINX - Proxy inverso para manejar tráfico de Stage y Prod
   nginx:
@@ -120,12 +109,12 @@ services:
     restart: always
     profiles:
       - "stage"
-      - "prod"  # 🔥 Se activa solo en estos entornos
+      - "prod"  
     volumes:
-      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro  # 📂 Configuración de Nginx
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro  
     depends_on:
       - odoo
     networks:
-      - odoo-network  # 🌍 Conexión a la red de Odoo
+      - odoo-network  
     ports:
-      - "80:80"  # 📌 Redirige tráfico HTTP a Odoo
+      - "80:80"  
