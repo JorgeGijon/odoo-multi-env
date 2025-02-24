@@ -144,7 +144,7 @@ git pull
 
 | **Contenedor**  | **Función** | **Documentación** |
 |----------------|------------|----------------|
-| **Permisos** | Permisos en Archivos y Directorios | [Guía](./documents/permisos.md) |
+| **Permisos** | Permisos en Archivos y Directorios | [Guía](./documents/systempermisos.md) |
 | **Git Workflow** | .github/workflows/update-readme.yml | [Guía](./documents/workflowsupdatereadme.md) |
 
 
