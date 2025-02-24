@@ -11,7 +11,7 @@ services:
     container_name: ${INSTANCE:-dev}-odoo
     ports:
       - "${ODOO_PORT:-8069}:8069"  # 📌 Puerto HTTP de Odoo
-      - "5678:5678"  # 🛠️ DebugPy para depuración remota
+      - "${DEBUGPY_PORT:-5678}:5678"  # 🛠️ DebugPy para depuración remota
     environment:
       - ODOO_ENV=development  # 🏗️ Define el entorno como desarrollo
       - DEBUGPY_PORT=5678      # 🔍 Puerto para DebugPy
