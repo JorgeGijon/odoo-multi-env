@@ -1,7 +1,9 @@
 # 🌐 Red compartida entre los servicios de Odoo
 networks:
   odoo-network:
-    external: true  # 🔗 Permite compartir la red con otros proyectos
+    name: odoo-network
+    driver: bridge
+    # external: true  # 🔗 Permite compartir la red con otros proyectos
 
 services:
   # 🏗️ ODOO - Aplicación ERP
