@@ -1,41 +1,62 @@
-#-----------------------------------------------------------------------------
-# 🚀 Ejecutar en Producción (Ubuntu):
-# docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d
-#-----------------------------------------------------------------------------
+# 📌 Configuración específica para el entorno de Producción
+# Se ejecuta con:
+# docker-compose -f docker-compose.yml -f docker-compose.override.prod.yml up -d --remove-orphans
 
 services:
-  # 🏗️ Odoo en modo Producción
   odoo:
-    env_file:
-      - .env.prod
-    container_name: ${INSTANCE:-prod}-odoo
+    container_name: prod-odoo
     ports:
-      - "8090:8069"  # 📌 Puerto HTTP de Odoo para Producción
+      - "${ODOO_PORT:-8090}:8069"  # 📌 Odoo en puerto 8090 para Producción
     environment:
       - ODOO_ENV=production  # 🏗️ Define el entorno como Producción
+      - PGHOST=${PGHOST:-prod-postgres}  # 🐘 PostgreSQL en Producción
+      - PGPORT=${PGPORT:-5432}  
+      - PGUSER=${PGUSER:-odoo}  
+      - PGPASSWORD=${PGPASSWORD:-prod_password}  
+      - PGDATABASE=${PGDATABASE:-odoo_prod}  
+      - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-prod-redis}  
+      - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}  
+      - WORKERS=4  # 🚀 Optimización para Producción
+      - MAX_CRON_THREADS=2  
+      - LIMIT_TIME_CPU=120  
+      - LIMIT_TIME_REAL=300  
+      - LIMIT_MEMORY_SOFT=2000000000  
+      - LIMIT_MEMORY_HARD=2500000000  
+      - PROXY_MODE=True  # 🌍 Habilita proxy para balanceadores de carga
+      - DB_SSLMODE=require  # 🔒 Requiere SSL en PostgreSQL
+      - DISABLE_SESSION_GC=True  # 🚀 Optimización de sesiones
     networks:
       - odoo-network
 
-  # 🐘 PostgreSQL en Producción
   postgres:
-    env_file:
-      - .env.prod
-    container_name: ${INSTANCE:-prod}-postgres
-
-  # 🔴 Redis en Producción
-  redis:
-    env_file:
-      - .env.prod
-    container_name: ${INSTANCE:-prod}-redis
-
-  # 🌍 Nginx en Producción
-  nginx:
-    container_name: ${INSTANCE:-prod}-nginx
-    restart: always
-    profiles:
-      - "prod"
+    container_name: prod-postgres
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=prod_password
+      - POSTGRES_DB=odoo_prod
     volumes:
-      - ./config/nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - odoo-network
+
+  redis:
+    container_name: prod-redis
+    environment:
+      - REDIS_PASSWORD=
+      - REDIS_MAXMEMORY=512mb
+      - REDIS_MAXMEMORY_POLICY=allkeys-lru
+    networks:
+      - odoo-network
+
+  nginx:
+    container_name: prod-nginx
     ports:
-      - "80:80"
-      - "443:443"  # 🔒 Habilita HTTPS en Producción
+      - "80:80"   # 📌 Maneja tráfico HTTP
+      - "443:443" # 🔒 Maneja tráfico HTTPS
+    volumes:
+      - ./config/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro  # 📂 Certificados SSL
+    depends_on:
+      - odoo
+    networks:
+      - odoo-network

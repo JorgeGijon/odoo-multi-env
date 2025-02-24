@@ -1,12 +1,10 @@
-#-----------------------------------------------------------------------------
-# 🚀 Ejecutar en Stage (Ubuntu):
-# docker-compose -f docker-compose.yml -f docker-compose.override.stage.yml up -d
-#-----------------------------------------------------------------------------
+# 📌 Configuración específica para el entorno de Staging
+# Se ejecuta con:
+# docker-compose -f docker-compose.yml -f docker-compose.override.stage.yml up -d --remove-orphans
 
 services:
-  # 🏗️ Odoo en modo Stage
   odoo:
-    container_name: ${INSTANCE:-stage}-odoo
+    container_name: stage-odoo
     ports:
       - "${ODOO_PORT:-8070}:8069"  # 📌 Odoo en puerto 8070 para Staging
     environment:
@@ -21,9 +19,8 @@ services:
     networks:
       - odoo-network
 
-  # 🐘 PostgreSQL en Stage
   postgres:
-    container_name: ${INSTANCE:-stage}-postgres
+    container_name: stage-postgres
     environment:
       - POSTGRES_USER=odoo
       - POSTGRES_PASSWORD=staging_password
@@ -33,9 +30,8 @@ services:
     networks:
       - odoo-network
 
-  # 🔴 Redis en Stage
   redis:
-    container_name: ${INSTANCE:-stage}-redis
+    container_name: stage-redis
     environment:
       - REDIS_PASSWORD=
       - REDIS_MAXMEMORY=512mb
@@ -43,13 +39,13 @@ services:
     networks:
       - odoo-network
 
-  # 🌍 Nginx en Stage
   nginx:
-    container_name: ${INSTANCE:-stage}-nginx
-    restart: always
-    profiles:
-      - "stage"
-    volumes:
-      - ./config/nginx-stage.conf:/etc/nginx/conf.d/default.conf:ro
+    container_name: stage-nginx
     ports:
-      - "80:80"  # 📌 Maneja tráfico HTTP para Stage
+      - "80:80"  # 📌 Maneja tráfico HTTP para Staging
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - odoo
+    networks:
+      - odoo-network
