@@ -23,15 +23,22 @@ services:
 
   # 🐘 PostgreSQL en Stage
   postgres:
-    env_file:
-      - .env.stage
     container_name: ${INSTANCE:-stage}-postgres
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=staging_password
+      - POSTGRES_DB=odoo_stage
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - odoo-network
 
   # 🔴 Redis en Stage
   redis:
     env_file:
       - .env.stage
     container_name: ${INSTANCE:-stage}-redis
+    
 
   # 🌍 Nginx en Stage
   nginx:
