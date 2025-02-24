@@ -7,14 +7,14 @@ USER root
 # 🔄 Configurar entorno sin prompts interactivos
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 🏗️ Añadir repositorio correcto para PostgreSQL y asegurarnos de que usamos la misma versión de `libpq`
+# 🏗️ Agregar el repositorio de PostgreSQL y actualizar claves GPG
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | tee /etc/apt/trusted.gpg.d/pgdg.asc
 
-# 🔹 Instalar paquetes necesarios, asegurando compatibilidad con PostgreSQL 16
+# 🔹 Instalar paquetes necesarios con versiones alineadas
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext-base curl git vim nano net-tools wget unzip \
-    postgresql-client-16 libpq-dev=16.6-0ubuntu0.24.04.1 libpq5=16.6-0ubuntu0.24.04.1 \
+    postgresql-client-16 libpq-dev libpq5 \
     python3-venv python3-dev locales \
     && rm -rf /var/lib/apt/lists/*
 
