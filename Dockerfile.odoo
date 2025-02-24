@@ -17,7 +17,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv python3-dev libxml2-dev libxslt-dev \
     fonts-dejavu fonts-liberation ghostscript poppler-utils \
     wkhtmltopdf \
+    --allow-downgrades \
     && rm -rf /var/lib/apt/lists/*
+
 
 # 🐍 Crear entorno virtual de Python y actualizar `pip`
 RUN python3 -m venv /opt/venv
