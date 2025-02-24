@@ -160,4 +160,50 @@ Write-Host "✅ Permisos asignados correctamente."
 ```
 ---
 
+Workflow (.github/workflows/update-readme.yml)
+
+name: Actualizar README automáticamente
+
+# El workflow se activará en cada push a la rama main y también se puede programar (cron)
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'  # Se ejecuta diariamente a medianoche (ajusta según necesites)
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v3
+
+      - name: Ejecutar script de actualización del README
+        run: |
+          python update_readme.py
+
+      - name: Configurar Git
+        run: |
+          git config --local user.email "tu-email@ejemplo.com"
+          git config --local user.name "Tu Nombre"
+
+      - name: Commit de cambios en README
+        run: |
+          git add README.md
+          # Si hay cambios, se realiza el commit
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-actualización del README [skip ci]"
+            git push
+          else
+            echo "No hay cambios en el README"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+Descripción del Workf
+
+---
+
 📌 **Autor:** JorgeGR 🚀 | Contribuciones bienvenidas mediante PRs.
