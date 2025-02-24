@@ -25,9 +25,9 @@ services:
     profiles:
       - "dev"
     volumes:
-      - ./addons:/mnt/custom-addons  # 🔄 Monta los módulos personalizados para desarrollo en caliente
-      - ./odoo-src:/usr/lib/python3/dist-packages/odoo  # 🔍 Acceso al código fuente de Odoo
-      - ./data/odoo:/var/lib/odoo  # 📂 Almacena datos persistentes de Odoo en Desarrollo
+      - ./addons:/mnt/custom-addons                      # 🔌 Monta los módulos personalizados
+      - ./odoo-src:/usr/lib/python3/dist-packages/odoo   # 🖥️ Acceso al código fuente de Odoo
+      - ./data/odoo:/var/lib/odoo                        # 💾 Almacena datos persistentes de Odoo
     command: 
       - "python3" 
       - "-m" 

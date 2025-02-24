@@ -41,9 +41,6 @@ services:
     volumes:
       - ./entrypoint_odoo.sh:/entrypoint.sh:ro           # 🚀 Script de inicio para Odoo
       - ./data/config:/config                            # 📜 Configuración dinámica (`odoo_dev.conf`, `odoo_prod.conf`)
-      - ./addons:/mnt/custom-addons                      # 🔌 Monta los módulos personalizados
-      - ./odoo-src:/usr/lib/python3/dist-packages/odoo   # 🖥️ Acceso al código fuente de Odoo
-      - ./data/odoo:/var/lib/odoo                        # 💾 Almacena datos persistentes de Odoo
       - ./data/filestore:/var/lib/odoo/filestore         # 📂 Almacenamiento de archivos adjuntos
     networks:
       - odoo-network  # 🌍 Conexión a la red de Odoo
