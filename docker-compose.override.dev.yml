@@ -29,11 +29,7 @@ services:
   postgres:
     container_name: dev-postgres
     environment:
-      - POSTGRES_USER=odoo
-      - POSTGRES_PASSWORD=odoo_password
-      - POSTGRES_DB=odoo_dev
-    ports:
-      - "5433:5432"  # 🐘 Expone PostgreSQL en un puerto diferente al estándar
+      - ODOO_ENV=development
     networks:
       - odoo-network
 
