@@ -6,9 +6,7 @@
 services:
   # 🏗️ Odoo en modo desarrollo
   odoo:
-    env_file:
-      - .env.dev  # 🔹 Carga variables de entorno específicas para desarrollo
-    container_name: ${INSTANCE:-dev}-odoo
+    container_name: ${INSTANCE:-prueba}-odoo
     ports:
       - "${ODOO_PORT:-8069}:8069"  # 📌 Puerto HTTP de Odoo
       - "${DEBUGPY_PORT:-5678}:5678"  # 🛠️ DebugPy para depuración remota
