@@ -7,38 +7,45 @@ USER root
 # 🔄 Configurar entorno sin prompts interactivos
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 📌 **Instalar paquetes necesarios**
+# 🔹 Instalar paquetes necesarios, incluyendo postgresql-client
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext-base curl git vim nano net-tools wget unzip \
-    libpq-dev=16.6-0ubuntu0.24.04.1 libpq5=16.6-0ubuntu0.24.04.1 \
-    python3-venv python3-dev libxml2-dev libxslt-dev \
-    fonts-dejavu fonts-liberation ghostscript poppler-utils \
-    wkhtmltopdf \
+    postgresql-client \
+    libpq-dev python3-venv python3-dev locales \
     && rm -rf /var/lib/apt/lists/*
 
-# 🐍 **Crear entorno virtual de Python y actualizar `pip`**
+# 🌍 Configurar `locale` correctamente
+RUN locale-gen en_US.UTF-8 && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+
+# 🏗️ Configurar variables de entorno para `locale`
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+# 🐍 Crear entorno virtual de Python y actualizar `pip`
 RUN python3 -m venv /opt/venv
 RUN /opt/venv/bin/pip install --upgrade pip && /opt/venv/bin/pip install debugpy
 
-# 🏗️ **Configurar PATH para que use el entorno virtual**
+# 🏗️ Configurar PATH para que use el entorno virtual
 ENV PATH="/opt/venv/bin:$PATH"
 
-# 🔌 **Copiar módulos personalizados**
-COPY --chown=odoo:odoo ./addons /mnt/custom-addons
+# 🔌 Copiar módulos personalizados
+COPY --chown=odoo:odoo /custom_addons /mnt/custom-addons
 
-# 🔧 **Copiar el script de entrada y asignar permisos de ejecución**
+# 🔧 Copiar el script de entrada y asignar permisos de ejecución
 COPY entrypoint_odoo.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# 📂 **Ajustar permisos de directorios críticos**
+# 📂 Ajustar permisos de directorios críticos
 RUN mkdir -p /var/lib/odoo/filestore && chmod -R 777 /var/lib/odoo/filestore
 RUN mkdir -p /backups && chmod -R 777 /backups && chown -R odoo:odoo /backups
 
-# 👤 **Cambiar al usuario 'odoo' para la ejecución**
+# 👤 Cambiar al usuario 'odoo' para la ejecución
 USER odoo
 
-# 🏁 **Definir el entrypoint**
+# 🏁 Definir el entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 
-# 🚀 **Comando por defecto para ejecutar Odoo**
+# 🚀 Comando por defecto para ejecutar Odoo
 CMD ["odoo"]
